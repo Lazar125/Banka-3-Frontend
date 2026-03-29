@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { login } from "../services/AuthService";
-import { getClientByEmail } from "../services/ClientService";
-import { getEmployees } from "../services/EmployeeService"; // Dodato za proveru zaposlenih
 import "./LoginPage.css";
 import { useNavigate } from "react-router-dom";
 
@@ -31,36 +29,22 @@ export default function LoginPage() {
       // u ClientService/EmployeeService koriste ove tokene iz localStorage
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
+      localStorage.setItem("permissions", JSON.stringify(data.permissions));
 
       // 3. Utvrđujemo ulogu (Role Detection)
       // Pošto backend ne vraća ulogu u login odgovoru, proveravamo bazu klijenata
-      try {
-        const client = await getClientByEmail(email);
-        
-        if (client && client.id) {
-          // KORISNIK JE KLIJENT
-          localStorage.setItem("userRole", "client");
-          localStorage.setItem("userId", client.id); // Uzimamo pravi ID iz baze
-          navigate("/dashboard");
-        } else {
-          // Ako nije klijent, proveravamo da li je zaposleni
-          throw new Error("Not a client"); 
-        }
-      } catch (clientErr) {
-        // KORISNIK JE ZAPOSLENI (ili bar nije klijent)
-        // Ovde možemo opciono proveriti /api/employees ali obično idemo na /employees
-        localStorage.setItem("userRole", "employee");
-        
-        // Pokušavamo da nađemo ID zaposlenog da bi aplikacija imala userId
-        try {
-            const employees = await getEmployees({ email: email });
-            const emp = Array.isArray(employees) ? employees.find(e => e.email === email) : null;
-            if (emp) localStorage.setItem("userId", emp.id);
-        } catch (empErr) {
-            console.warn("Nije moguće dohvatiti ID zaposlenog");
-        }
+      localStorage.setItem("permissions", JSON.stringify(data.permissions));
+      const permissions = data.permissions || [];
 
+      if (permissions.includes("admin")) {
+        localStorage.setItem("userRole", "employee");  // admin JE employee
         navigate("/employees");
+      } else if (permissions.length > 0) {
+        localStorage.setItem("userRole", "employee");
+        navigate("/employees");
+      } else {
+        localStorage.setItem("userRole", "client");
+        navigate("/dashboard");
       }
 
     } catch (err) {

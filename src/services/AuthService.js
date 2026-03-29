@@ -8,6 +8,7 @@ export const login = async (email, password) => {
     accessToken: response.data.accessToken || response.data.access_token,
     refreshToken: response.data.refreshToken || response.data.refresh_token,
     userId: response.data.userId || response.data.user_id,
+    permissions: response.data.permissions || [],
   };
 };
 
@@ -17,6 +18,7 @@ export const logout = async () => {
   localStorage.removeItem("refreshToken");
   localStorage.removeItem("userId");
   localStorage.removeItem("userRole");
+  localStorage.removeItem("permissions");
   clearClientCache();
 };
 
@@ -68,4 +70,12 @@ export const beginTotpSetup = async () => {
 export const confirmTotpSetup = async (code) => {
   const response = await api.post("/totp/setup/confirm", { code });
   return response.data;
+};
+
+export const getPermissions = () => {
+  try {
+    return JSON.parse(localStorage.getItem("permissions") || "[]");
+  } catch {
+    return [];
+  }
 };

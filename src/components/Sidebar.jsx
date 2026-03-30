@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { logout } from "../services/AuthService";
+import {getPermissions, logout} from "../services/AuthService";
 import "./Sidebar.css";
 
 export default function MenuDropdown() {
@@ -47,88 +47,60 @@ export default function MenuDropdown() {
 
   // Stavke menija
   const getMenuSections = () => {
+    const sections = [];
+    const permissions = getPermissions();
+    const isAdmin = permissions.includes("admin");
+
     if (role === "client") {
-      return [
-        {
-          title: "Dashboard",
-          items: [{ label: "Client Dashboard", path: "/dashboard" }],
-        },
-        {
-          title: "Računi",
-          items: [
-            { label: "Moji računi", path: "/accounts" },
-          ],
-        },
-        {
-          title: "Plaćanja",
-          items: [
-            { label: "Novo plaćanje", path: "/payment" },
-            { label: "Novi transfer", path: "/payment" },
-            { label: "Pregled transakcija", path: "/payments" },
-            { label: "Primaoci", path: "/recipients" },
-          ],
-        },
-        {
-          title: "Menjačnica",
-          items: [
-            { label: "Kursna lista / konverzija", path: "/exchange" },
-          ],
-        },
-        {
-          title: "Kartice",
-          items: [
-            { label: "Moje kartice", path: "/cards" },
-            { label: "Zahtev za novu karticu", path: "/cards/request" },
-          ],
-        },
-        {
-          title: "Krediti",
-          items: [
-            { label: "Moji krediti", path: "/loans" },
-            { label: "Zahtev za kredit", path: "/loan-request" },
-          ],
-        },
-      ];
+      sections.push(
+          { title: "Dashboard", items: [{ label: "Client Dashboard", path: "/dashboard" }] },
+          { title: "Računi", items: [{ label: "Moji računi", path: "/accounts" }] },
+          { title: "Plaćanja", items: [
+              { label: "Novo plaćanje", path: "/payment" },
+              { label: "Novi transfer", path: "/transfer" },
+              { label: "Pregled transakcija", path: "/payments" },
+              { label: "Primaoci", path: "/recipients" },
+            ]},
+          { title: "Menjačnica", items: [{ label: "Kursna lista / konverzija", path: "/exchange" }] },
+          { title: "Kartice", items: [
+              { label: "Moje kartice", path: "/cards" },
+              { label: "Zahtev za novu karticu", path: "/cards/request" },
+            ]},
+          { title: "Krediti", items: [
+              { label: "Moji krediti", path: "/loans" },
+              { label: "Zahtev za kredit", path: "/loan-request" },
+            ]},
+      );
     }
 
     if (role === "employee") {
-      return [
-        {
-          title: "Računi",
-          items: [
-            { label: "Svi računi", path: "/accounts" },
-            { label: "Kreiraj račun", path: "/accounts/create" },
-          ],
-        },
-        {
-          title: "Kartice",
-          items: [
-            { label: "Upravljanje karticama", path: "/cards" },
-          ],
-        },
-        {
-          title: "Krediti",
-          items: [
-            { label: "Zahtevi za kredit", path: "/loan-request" },
-            { label: "Svi krediti", path: "/loans" },
-          ],
-        },
-      ];
+      sections.push(
+          { title: "Računi", items: [
+              { label: "Svi računi", path: "/admin/accounts" },
+              { label: "Kreiraj račun", path: "/accounts/create" },
+            ]},
+          { title: "Kartice", items: [{ label: "Upravljanje karticama", path: "/cards" }] },
+          { title: "Krediti", items: [
+              { label: "Zahtevi za kredit", path: "/admin-loans" },
+              { label: "Svi krediti", path: "/loans" },
+            ]},
+      );
+
+      // Samo admin vidi upravljanje zaposlenima i klijentima
+      if (isAdmin) {
+        sections.push(
+            { title: "Zaposleni", items: [
+                { label: "Lista zaposlenih", path: "/employees" },
+                { label: "Dodaj zaposlenog", path: "/employees/create" },
+              ]},
+            { title: "Klijenti", items: [
+                { label: "Lista klijenata", path: "/clients" },
+              ]},
+        );
+      }
     }
 
-    if (role === "administrator") {
-      return [
-        {
-          title: "Zaposleni",
-          items: [
-            { label: "Lista zaposlenih", path: "/employees" },
-            { label: "Dodaj zaposlenog", path: "/employees/create" },
-          ],
-        },
-      ];
-    }
-
-    return [];
+    return sections;
   };
 
   const menuSections = getMenuSections();

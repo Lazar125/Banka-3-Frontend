@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getExchanges, updateExchangeStatus } from "../services/ExchangeService";
+import { getExchangeRates, updateExchangeStatus } from "../services/ExchangeService";
 import Sidebar from "../components/Sidebar.jsx";
 import "./BerzaPage.css";
 
@@ -15,7 +15,7 @@ export default function BerzaPage() {
         let cancelled = false;
         const load = async () => {
             try {
-                const data = await getExchanges();
+                const data = await getExchangeRates();
                 if (!cancelled) {
                     setExchanges(data);
                     setError("");

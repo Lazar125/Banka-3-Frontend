@@ -200,9 +200,15 @@ export default function PaymentsPage() {
         {/* Page header */}
         <div className="pp-page-header">
           <div className="pp-title-row">
-            <button className="pp-nav-back-btn" onClick={() => { setSelectedTx(null); navigate("/recipients"); }}>
-              ‹
-            </button>
+              <button
+                  className="pp-nav-back-btn"
+                  onClick={() => {
+                      setSelectedTx(null);
+                      navigate("/dashboard");
+                  }}
+              >
+                  ‹
+              </button>
             <h2 className="pp-page-title">
               {selectedTx ? "Detalji plaćanja" : "Pregled plaćanja"}
             </h2>

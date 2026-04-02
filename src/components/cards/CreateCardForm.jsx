@@ -6,13 +6,9 @@ function CreateCardForm({ accounts, onSubmit }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [selectedAccount, setSelectedAccount] = useState(null);
 
   const handleChange = (e) => {
     const { value } = e.target;
-    const account = accounts.find(a => a.accountNumber === value);
-
-    setSelectedAccount(account);
     setFormData({ accountNumber: value });
     setError("");
   };
@@ -36,7 +32,6 @@ function CreateCardForm({ accounts, onSubmit }) {
 
       setSuccess("Zahtev poslat. Proverite email za potvrdu.");
       setFormData({ accountNumber: "" });
-      setSelectedAccount(null);
 
     } catch (err) {
       setError(err.message || "Greška.");

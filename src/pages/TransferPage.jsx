@@ -210,13 +210,14 @@ export default function TransferPage() {
           </div>
         </form>
 
-        <TotpModal
-          open={showTotp}
-          onConfirm={handleTotpConfirm}
-          onCancel={() => { setShowTotp(false); setTotpError(""); }}
-          loading={submitting}
-          error={totpError}
-        />
+        {showTotp && (
+          <TotpModal
+            onConfirm={handleTotpConfirm}
+            onCancel={() => { setShowTotp(false); setTotpError(""); }}
+            loading={submitting}
+            error={totpError}
+          />
+        )}
       </div>
     </div>
   );

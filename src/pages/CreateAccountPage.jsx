@@ -827,7 +827,7 @@ export default function CreateAccountPage() {
                                         >
                                             <option value="">Izaberite pol</option>
                                             <option value="M">Muški</option>
-                                            <option value="Z">Ženski</option>
+                                            <option value="F">Ženski</option>
                                         </select>
                                         {clientFormErrors.gender && <p className="ca-error">{clientFormErrors.gender}</p>}
                                     </div>

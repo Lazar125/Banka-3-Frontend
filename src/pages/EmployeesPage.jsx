@@ -13,6 +13,9 @@ function EmployeesPage() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  const permissions = JSON.parse(localStorage.getItem("permissions") || "[]");
+  const isAdmin = permissions.includes("admin");
+
   useEffect(() => {
     const controller = new AbortController();
 
@@ -100,9 +103,11 @@ function EmployeesPage() {
                 </p>
               </div>
 
-              <button className="add-btn" onClick={openCreateEmployee}>
-                + Dodaj zaposlenog
-              </button>
+              {isAdmin && (
+                  <button className="add-btn" onClick={openCreateEmployee}>
+                    + Dodaj zaposlenog
+                  </button>
+              )}
             </div>
 
             <div className="employee-toolbar">

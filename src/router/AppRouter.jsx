@@ -57,7 +57,7 @@ export default function AppRouter() {
           <Route path="/clients" element={<ProtectedRoute requiredRole="employee"><ClientsPage /></ProtectedRoute>} />
           <Route path="/clients/:id" element={<ProtectedRoute requiredRole="employee"><ClientDetailsPage /></ProtectedRoute>} />
 
-          <Route path="/employees/create" element={<ProtectedRoute requiredRole="employee"><CreateEmployeePage /></ProtectedRoute>} />
+          <Route path="/employees/create" element={<ProtectedRoute requiredRole="employee" requiredPermission="admin"><CreateEmployeePage /></ProtectedRoute>}/>
           <Route path="/employees/edit/:id" element={<ProtectedRoute requiredRole="employee"><EditEmployeePage /></ProtectedRoute>} />
           <Route path="/employees/:id" element={<ProtectedRoute requiredRole="employee"><EmployeeDetailsPage /></ProtectedRoute>} />
           <Route path="/recipients" element={<ProtectedRoute requiredRole="client"><RecipientsPage /></ProtectedRoute>} />

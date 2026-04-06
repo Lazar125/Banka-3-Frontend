@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createEmployee, updateEmployee, getEmployees } from "../services/EmployeeService";
 import { PERMISSIONS } from "../constants/permissions";
 import "./CreateEmployeePage.css";
@@ -62,6 +62,17 @@ export default function CreateEmployeePage() {
   const [successMsg, setSuccessMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const permissions = JSON.parse(localStorage.getItem("permissions") || "[]");
+  const isAdmin = permissions.includes("admin");
+
+  useEffect(() => {
+    if (!isAdmin) {
+      navigate("/employees", { replace: true });
+    }
+  }, [isAdmin, navigate]);
+
+  if (!isAdmin) return null;
+
   function handlePermissionToggle(value) {
     setForm((prev) => ({
       ...prev,
@@ -122,6 +133,10 @@ export default function CreateEmployeePage() {
 
           if (!created) throw new Error("Nije moguće pronaći kreiranog zaposlenog.");
 
+          const safePermissions = isAdmin
+              ? form.permissions
+              : form.permissions.filter((permission) => permission !== "admin");
+
           await updateEmployee(created.id, {
             firstName: form.ime,
             lastName: form.prezime,
@@ -131,7 +146,7 @@ export default function CreateEmployeePage() {
             position: form.pozicija,
             department: form.department,
             active: true,
-            permissions: form.permissions,
+            permissions: safePermissions,
           });
         } catch {
           setSuccessMsg(

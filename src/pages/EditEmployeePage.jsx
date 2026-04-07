@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import "./CreateEmployeePage.css";
 import "./EmployeesPage.css";
 import { getEmployeeById, updateEmployee } from "../services/EmployeeService";
 import Sidebar from "../components/Sidebar.jsx";
-import { useNavigate } from "react-router-dom";
 
 function validate(form) {
   const errors = {};
@@ -26,10 +25,17 @@ const normalize = (p) => p.toLowerCase().replace(/ /g, "_");
 
 export default function EditEmployeePage() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    ime: '', prezime: "", pol: "", telefon: "",
-    adresa: "", pozicija: "", departman: "", aktivan: true,
+    ime: '',
+    prezime: "",
+    pol: "",
+    telefon: "",
+    adresa: "",
+    pozicija: "",
+    departman: "",
+    aktivan: true,
   });
 
   const [allPermissions] = useState([
@@ -64,10 +70,10 @@ export default function EditEmployeePage() {
         });
 
         const unique = [...new Set(
-              (employee.permissions || []).map(p => normalize(p))
-            )];
+          (employee.permissions || []).map(p => normalize(p))
+        )];
 
-            setSelectedPermissions(unique);
+        setSelectedPermissions(unique);
       })
       .catch(() => setNotFound(true));
   }, [id]);
@@ -146,9 +152,10 @@ export default function EditEmployeePage() {
 
           {Object.keys(errors).length > 0 && (
             <div className="error-msg">
-              {errors.submit || "Popunite sva obavezna polja"}
+              {Object.values(errors)[0]}
             </div>
           )}
+
           <form onSubmit={handleSubmit}>
             <div className="form-row-three">
               <div className="form-group">

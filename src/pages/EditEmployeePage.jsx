@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import "./CreateEmployeePage.css";
 import "./EmployeesPage.css";
 import { getEmployeeById, updateEmployee } from "../services/EmployeeService";
@@ -25,15 +25,28 @@ const normalize = (p) => p.toLowerCase().replace(/ /g, "_");
 
 export default function EditEmployeePage() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    ime: '', prezime: "", pol: "", telefon: "",
-    adresa: "", pozicija: "", departman: "", aktivan: true,
+    ime: '',
+    prezime: "",
+    pol: "",
+    telefon: "",
+    adresa: "",
+    pozicija: "",
+    departman: "",
+    aktivan: true,
   });
 
   const [allPermissions] = useState([
-    "trade_stocks", "manage_contracts", "read_accounts",
-    "write_accounts", "approve_loans", "admin"
+    "trade_stocks",
+    "view_stocks",
+    "manage_contracts",
+    "manage_insurance",
+    "read_accounts",
+    "write_accounts",
+    "approve_loans",
+    "admin"
   ]);
 
   const [selectedPermissions, setSelectedPermissions] = useState([]);
@@ -55,7 +68,12 @@ export default function EditEmployeePage() {
           departman: employee.department ?? "",
           aktivan: employee.active ?? true,
         });
-        setSelectedPermissions((employee.permissions || []).map(normalize));
+
+        const unique = [...new Set(
+          (employee.permissions || []).map(p => normalize(p))
+        )];
+
+        setSelectedPermissions(unique);
       })
       .catch(() => setNotFound(true));
   }, [id]);
@@ -72,11 +90,13 @@ export default function EditEmployeePage() {
   const togglePermission = (perm) => {
     const normalized = normalize(perm);
     setSelectedPermissions(prev => {
-      const normalizedPrev = prev.map(normalize);
-      if (normalizedPrev.includes(normalized)) {
-        return prev.filter(p => normalize(p) !== normalized);
+      const clean = prev.map(normalize);
+
+      if (clean.includes(normalized)) {
+        return clean.filter(p => p !== normalized);
       }
-      return [...prev, normalized];
+
+      return [...clean, normalized];
     });
   };
 
@@ -90,10 +110,14 @@ export default function EditEmployeePage() {
     setLoading(true);
     try {
       await updateEmployee(Number(id), {
-        firstName: form.ime, lastName: form.prezime,
-        gender: form.pol, phoneNumber: form.telefon,
-        address: form.adresa, position: form.pozicija,
-        department: form.departman, active: form.aktivan,
+        firstName: form.ime,
+        lastName: form.prezime,
+        gender: form.pol,
+        phoneNumber: form.telefon,
+        address: form.adresa,
+        position: form.pozicija,
+        department: form.departman,
+        active: form.aktivan,
         permissions: selectedPermissions.map(p => p.toUpperCase())
       });
       setSuccessMsg("Profil uspešno izmenjen.");
@@ -125,56 +149,68 @@ export default function EditEmployeePage() {
       <div className="create-page">
         <div className="create-form-card">
           {successMsg && <div className="success-msg">{successMsg}</div>}
-          {errors.submit && <div className="error-msg">{errors.submit}</div>}
+
+          {Object.keys(errors).length > 0 && (
+            <div className="error-msg">
+              {Object.values(errors)[0]}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit}>
             <div className="form-row-three">
               <div className="form-group">
                 <label>Prezime</label>
-                <input name="prezime" value={form.prezime} onChange={handleChange} className={errors.prezime ? "input-error" : ""} />
-                {errors.prezime && <span className="error-msg">{errors.prezime}</span>}
+                <input name="prezime" value={form.prezime} onChange={handleChange} />
               </div>
+
               <div className="form-group">
                 <label>Pol</label>
-                <input name="pol" value={form.pol} onChange={handleChange} className={errors.pol ? "input-error" : ""} />
-                {errors.pol && <span className="error-msg">{errors.pol}</span>}
+                <input name="pol" value={form.pol} onChange={handleChange} />
               </div>
+
               <div className="form-group">
                 <label>Telefon</label>
-                <input name="telefon" value={form.telefon} onChange={handleChange} className={errors.telefon ? "input-error" : ""} />
-                {errors.telefon && <span className="error-msg">{errors.telefon}</span>}
+                <input name="telefon" value={form.telefon} onChange={handleChange} />
               </div>
             </div>
 
             <div className="form-grid">
               <div className="form-group">
                 <label>Adresa</label>
-                <input name="adresa" value={form.adresa} onChange={handleChange} className={errors.adresa ? "input-error" : ""} />
-                {errors.adresa && <span className="error-msg">{errors.adresa}</span>}
+                <input name="adresa" value={form.adresa} onChange={handleChange} />
               </div>
+
               <div className="form-group">
                 <label>Pozicija</label>
-                <input name="pozicija" value={form.pozicija} onChange={handleChange} className={errors.pozicija ? "input-error" : ""} />
-                {errors.pozicija && <span className="error-msg">{errors.pozicija}</span>}
+                <input name="pozicija" value={form.pozicija} onChange={handleChange} />
               </div>
+
               <div className="form-group">
                 <label>Departman</label>
-                <input name="departman" value={form.departman} onChange={handleChange} className={errors.departman ? "input-error" : ""} />
-                {errors.departman && <span className="error-msg">{errors.departman}</span>}
+                <input name="departman" value={form.departman} onChange={handleChange} />
               </div>
             </div>
 
-            <label style={{ display: "flex", gap: "10px", alignItems: "center", margin: "20px 0", color: "#f8fafc" }}>
-              Aktivan
-              <input type="checkbox" name="aktivan" checked={form.aktivan} onChange={handleChange} />
-            </label>
+            <div className="form-group">
+              <label>Aktivan</label>
+              <input
+                type="checkbox"
+                name="aktivan"
+                checked={form.aktivan}
+                onChange={handleChange}
+              />
+            </div>
 
             <div className="permissions-section">
               <span className="permissions-label">Permisije</span>
               <div className="permissions-grid">
                 {allPermissions.map((perm) => (
                   <label key={perm} className="permission-checkbox">
-                    <input type="checkbox" checked={selectedPermissions.includes(perm)} onChange={() => togglePermission(perm)} />
+                    <input
+                      type="checkbox"
+                      checked={selectedPermissions.includes(normalize(perm))}
+                      onChange={() => togglePermission(perm)}
+                    />
                     <span className="checkmark"></span>
                     <span className="permission-text">{formatLabel(perm)}</span>
                   </label>
@@ -182,9 +218,20 @@ export default function EditEmployeePage() {
               </div>
             </div>
 
-            <button type="submit" className="create-btn create-btn-primary" style={{ marginTop: "20px" }}>
-              {loading ? "Čuvanje..." : "Sačuvaj izmene"}
-            </button>
+            <div className="form-actions">
+              <button type="submit" className="create-btn create-btn-primary">
+                {loading ? "Čuvanje..." : "Sačuvaj izmene"}
+              </button>
+
+              <button
+                type="button"
+                className="create-btn"
+                onClick={() => navigate(-1)}
+              >
+                Otkaži
+              </button>
+            </div>
+
           </form>
         </div>
       </div>

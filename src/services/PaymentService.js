@@ -6,8 +6,51 @@ export async function getRecipients() {
 }
 
 export async function getTransactions(filters = {}) {
-  const response = await api.get("/transactions", { params: filters });
-  return Array.isArray(response.data) ? response.data : [];
+  const params = {};
+  
+  if (filters.status) {
+    const statusMap = {
+      'Realizovano': 'realized',
+      'Na čekanju': 'pending',
+      'Odbijeno': 'rejected',
+      'Odobreno': 'approved',
+    };
+    params.status = statusMap[filters.status] || filters.status;
+  }
+  
+  if (filters.dateFrom) params.date = filters.dateFrom;
+  if (filters.dateTo) params.dateTo = filters.dateTo;
+  
+  if (filters.amountMin || filters.amountMax) {
+    const min = filters.amountMin || 0;
+    const max = filters.amountMax || 999999999;
+    params.amount = `${min}-${max}`;
+  }
+  
+  try {
+    const response = await api.get("/transactions", { params });
+    
+    const data = Array.isArray(response.data) ? response.data : [];
+    
+   const statusReverseMap = {
+  'realized': 'Realizovano',
+  'completed': 'Realizovano',  // PRIVREMENO
+  'pending': 'Na čekanju',
+  'rejected': 'Odbijeno',
+  'approved': 'Odobreno',
+};
+    
+    const processedData = data.map(tx => ({
+      ...tx,
+      status: statusReverseMap[tx.status] || tx.status || "Realizovano",
+      currency: tx.currency || "RSD",
+    }));
+    
+    return processedData;
+  } catch (error) {
+    console.error("❌ API ERROR:", error);
+    throw error;
+  }
 }
 
 export async function createRecipient(recipientData) {

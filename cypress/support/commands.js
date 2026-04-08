@@ -59,3 +59,58 @@ Cypress.Commands.add("stubEmployeeDetails", (employee) => {
     body: employee,
   }).as("getEmployee");
 });
+
+Cypress.Commands.add("loginWithBackend", (email = "petar@primer.raf", password = "Test1234!") => {
+  cy.request({
+    method: "POST",
+    url: "/api/login",
+    body: { email, password },
+  }).then((resp) => {
+    const accessToken = resp.body.accessToken || resp.body.access_token;
+    const refreshToken = resp.body.refreshToken || resp.body.refresh_token;
+    
+    cy.window().then((win) => {
+      win.localStorage.setItem("accessToken", accessToken);
+      win.localStorage.setItem("refreshToken", refreshToken);
+    });
+  });
+});
+
+Cypress.Commands.add("visitPayments", () => {
+  cy.loginWithBackend();
+  cy.visit("/payments");
+});
+
+Cypress.Commands.add("visitTransfer", () => {
+  cy.loginWithBackend();
+  cy.visit("/transfer");
+});
+
+Cypress.Commands.add("visitPayment", () => {
+  cy.loginWithBackend();
+  cy.visit("/payment");
+});
+
+Cypress.Commands.add("filterByStatus", (status) => {
+  cy.contains(status).click();
+  cy.get(".pp-filter-pill--active").should("contain", status);
+});
+
+Cypress.Commands.add("filterByType", (type) => {
+  cy.contains(type).click();
+});
+
+Cypress.Commands.add("openTransactionDetail", (index = 0) => {
+  cy.get(".pp-row").eq(index).click();
+  cy.contains("Detalji plaćanja").should("be.visible");
+});
+
+Cypress.Commands.add("goBackToList", () => {
+  cy.get(".pp-back-btn").click();
+  cy.contains("Pregled plaćanja").should("be.visible");
+});
+
+Cypress.Commands.add("resetAllFilters", () => {
+  cy.contains("Resetuj sve filtere").click();
+  cy.get(".pp-filter-pill--active").should("contain", "Sve");
+});

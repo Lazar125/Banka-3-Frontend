@@ -33,8 +33,13 @@ export async function getUserAccounts() {
 export async function requestCard(cardData) {
   const response = await api.post("/cards", {
     account_number: cardData.accountNumber,
+<<<<<<< HEAD
     card_type: "debit",
     card_brand: "visa"
+=======
+    card_type: "DEBIT",
+    card_brand: "VISA",
+>>>>>>> aded30f (card masking fix)
   });
 
   return response.data;

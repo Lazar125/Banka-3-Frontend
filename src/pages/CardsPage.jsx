@@ -1,21 +1,33 @@
 import { useEffect, useState } from "react";
-import { getUserCards, getUserAccounts } from "../services/CardService";
+import { getUserCards, getUserAccounts, requestCard } from "../services/CardService";
 import CardsList from "../components/cards/CardsList";
 import CreateCardForm from "../components/cards/CreateCardForm";
+import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar.jsx";
 import "./CardsPage.css";
 
-
 function CardsPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const role = localStorage.getItem("userRole");
+
   const [cards, setCards] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [activeTab, setActiveTab] = useState("list");
   const [message, setMessage] = useState("");
 
-  const role = localStorage.getItem("userRole");
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get("tab");
+
+    if (tab === "create" && role === "client") {
+      setActiveTab("create");
+    } else {
+      setActiveTab("list");
+    }
+  }, [location.search, role]);
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
@@ -26,7 +38,7 @@ function CardsPage() {
     }
 
     loadData();
-  }, [navigate]);
+  }, []);
 
   const loadData = async () => {
     try {
@@ -49,20 +61,26 @@ function CardsPage() {
   const handleCardRequest = async (cardData) => {
     try {
       await requestCard(cardData);
-      setMessage("Zahtev poslat. Proverite email za potvrdu.");
-      setActiveTab("list");
-      navigate("/cards");
+
+      setMessage("Kartica uspešno zatražena! Proverite backend log.");
+
+      navigate("/cards", { replace: true });
+
       await loadData();
+
+      setTimeout(() => setMessage(""), 3000);
+
     } catch (error) {
       setMessage("Greška: " + error.message);
     }
   };
 
-
   const handleCardBlocked = (cardId) => {
-    setCards(cards.map(card =>
-      card.id === cardId ? { ...card, status: "Blokirana" } : card
-    ));
+    setCards(prev =>
+      prev.map(card =>
+        card.id === cardId ? { ...card, status: "Blokirana" } : card
+      )
+    );
 
     setMessage("Kartica blokirana");
     setTimeout(() => setMessage(""), 3000);
@@ -75,6 +93,7 @@ function CardsPage() {
   return (
     <div className="cards-page">
       <Sidebar />
+
       <div className="cards-container">
         <h1>
           {activeTab === "list" ? "Moje kartice" : "Zahtev za karticu"}
@@ -92,12 +111,14 @@ function CardsPage() {
             Sve kartice ({cards.length})
           </button>
 
-          <button
-            className={`tab-btn ${activeTab === "create" ? "active" : ""}`}
-            onClick={() => setActiveTab("create")}
-          >
-            Zatraži karticu
-          </button>
+          {role === "client" && (
+            <button
+              className={`tab-btn ${activeTab === "create" ? "active" : ""}`}
+              onClick={() => navigate("/cards?tab=create")}
+            >
+              Zatraži karticu
+            </button>
+          )}
         </div>
 
         {activeTab === "list" && (
@@ -108,10 +129,10 @@ function CardsPage() {
           />
         )}
 
-        {activeTab === "create" && (
+        {activeTab === "create" && role === "client" && (
           <CreateCardForm
             accounts={accounts}
-            onCardCreated={handleCardCreated}
+            onSubmit={handleCardRequest}
           />
         )}
       </div>

@@ -10,8 +10,6 @@ function CardsPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const role = localStorage.getItem("userRole");
-
   const [cards, setCards] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);

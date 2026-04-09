@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { login } from "../services/AuthService";
+import { useState, useEffect } from "react";
+import { login, clearAuthState } from "../services/AuthService";
+import useFailedAttempts, { BLOCKED_MESSAGE } from "../utils/useFailedAttempts";
 import "./LoginPage.css";
 import { useNavigate } from "react-router-dom";
 
@@ -9,9 +10,23 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const { isBlocked, increment, reset } = useFailedAttempts("login");
+  const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (sessionStorage.getItem("sessionExpired")) {
+      setMessage("Vaša sesija je istekla, molimo prijavite se ponovo.");
+      sessionStorage.removeItem("sessionExpired");
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (isBlocked) {
+      setMessage(BLOCKED_MESSAGE);
+      return;
+    }
 
     if (!email || !password) {
       setMessage("Unesite email i lozinku");
@@ -24,26 +39,27 @@ export default function LoginPage() {
     try {
       // 1. Prvo radimo login da dobijemo tokene
       const data = await login(email, password);
+      reset();
 
       // 2. OBAVEZNO upisujemo tokene odmah, jer sledeći API pozivi 
-      // u ClientService/EmployeeService koriste ove tokene iz localStorage
-      localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("refreshToken", data.refreshToken);
-      localStorage.setItem("permissions", JSON.stringify(data.permissions));
+      // u ClientService/EmployeeService koriste ove tokene iz sessionStorage
+      sessionStorage.setItem("accessToken", data.accessToken);
+      sessionStorage.setItem("refreshToken", data.refreshToken);
+      sessionStorage.setItem("permissions", JSON.stringify(data.permissions));
 
       // 3. Utvrđujemo ulogu (Role Detection)
       // Pošto backend ne vraća ulogu u login odgovoru, proveravamo bazu klijenata
-      localStorage.setItem("permissions", JSON.stringify(data.permissions));
+      sessionStorage.setItem("permissions", JSON.stringify(data.permissions));
       const permissions = data.permissions || [];
 
       if (permissions.includes("admin")) {
-        localStorage.setItem("userRole", "employee");  // admin JE employee
+        sessionStorage.setItem("userRole", "employee");  // admin JE employee
         navigate("/employees");
       } else if (permissions.length > 0) {
-        localStorage.setItem("userRole", "employee");
+        sessionStorage.setItem("userRole", "employee");
         navigate("/employees");
       } else {
-        localStorage.setItem("userRole", "client");
+        sessionStorage.setItem("userRole", "client");
         navigate("/dashboard");
       }
 
@@ -72,6 +88,8 @@ export default function LoginPage() {
             "Nalog još nije aktiviran. Proverite email i postavite lozinku putem linka za aktivaciju (ili zatražite novi link)."
           );
         } else if (status === 401) {
+        if (err.response.status === 401) {
+          increment();
           setMessage("Pogrešan email ili lozinka");
         } else {
           setMessage("Greška na serveru pri prijavi.");
@@ -79,10 +97,7 @@ export default function LoginPage() {
       } else {
         setMessage("Mrežna greška. Proverite da li je Backend pokrenut.");
       }
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("userId");
-      localStorage.removeItem("userRole");
+      clearAuthState();
     } finally {
       setLoading(false);
     }
@@ -121,12 +136,31 @@ export default function LoginPage() {
             <div className="input-wrapper">
               <input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="unesite lozinku..."
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
               />
+              <button
+                type="button"
+                className="toggle-password"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Sakrij lozinku" : "Prikaži lozinku"}
+              >
+                {showPassword ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                )}
+              </button>
             </div>
           </div>
 
@@ -134,11 +168,15 @@ export default function LoginPage() {
             Zaboravili ste lozinku?
           </p>
 
-          <button type="submit" className="login-button" disabled={loading}>
+          <button type="submit" className="login-button" disabled={loading || isBlocked}>
             {loading ? "Prijavljivanje..." : "Prijavi se"}
           </button>
 
-          {message && <p className="message">{message}</p>}
+          {isBlocked ? (
+            <p className="message login-blocked">{BLOCKED_MESSAGE}</p>
+          ) : (
+            message && <p className="message">{message}</p>
+          )}
         </form>
 
         <p className="login-footer">Banka 2026 • Računarski fakultet</p>

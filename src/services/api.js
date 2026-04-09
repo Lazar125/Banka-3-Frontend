@@ -1,4 +1,8 @@
 import axios from "axios";
+// Cirkularni import: AuthService.js → api.js → AuthService.js. Radi jer se
+// clearAuthState i getIsLoggingOut koriste SAMO unutar interceptor funkcija,
+// koje se izvršavaju tek posle što su svi moduli završili load (live bindings).
+import { clearAuthState, getIsLoggingOut } from "./AuthService.js";
 
 const baseURL = import.meta.env.VITE_API_URL
   ? import.meta.env.VITE_API_URL
@@ -6,8 +10,11 @@ const baseURL = import.meta.env.VITE_API_URL
 
 const api = axios.create({ baseURL });
 
+// Auth podaci se čuvaju u sessionStorage (ne localStorage) kako bi svaki tab
+// imao izolovanu sesiju — sprečava koliziju kada su Admin i Klijent otvoreni u
+// različitim tabovima istog brauzera (#161).
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("accessToken");
+  const token = sessionStorage.getItem("accessToken");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -25,12 +32,16 @@ api.interceptors.response.use(
     ) {
       originalRequest._retry = true;
 
-      const storedRefresh = localStorage.getItem("refreshToken");
+      // Ako je logout u toku, ne pokušavaj refresh — in-flight request bi
+      // inače upisao nove tokene u sessionStorage POSLE čišćenja (M1).
+      if (getIsLoggingOut()) {
+        return Promise.reject(error);
+      }
+
+      const storedRefresh = sessionStorage.getItem("refreshToken");
       if (!storedRefresh) {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("userId");
-        localStorage.removeItem("userRole");
+        clearAuthState();
+        sessionStorage.setItem("sessionExpired", "1");
         window.location.href = "/login";
         return Promise.reject(error);
       }
@@ -39,17 +50,19 @@ api.interceptors.response.use(
         const { data } = await api.post("/token/refresh", {
           refresh_token: storedRefresh,
         });
+        // Drugi put proveravamo flag — logout se mogao desiti tokom await-a.
+        if (getIsLoggingOut()) {
+          return Promise.reject(error);
+        }
         const newAccess = data.access_token || data.accessToken;
         const newRefresh = data.refresh_token || data.refreshToken;
-        localStorage.setItem("accessToken", newAccess);
-        localStorage.setItem("refreshToken", newRefresh);
+        sessionStorage.setItem("accessToken", newAccess);
+        sessionStorage.setItem("refreshToken", newRefresh);
         originalRequest.headers.Authorization = `Bearer ${newAccess}`;
         return api(originalRequest);
       } catch {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("userId");
-        localStorage.removeItem("userRole");
+        clearAuthState();
+        sessionStorage.setItem("sessionExpired", "1");
         window.location.href = "/login";
         return Promise.reject(error);
       }

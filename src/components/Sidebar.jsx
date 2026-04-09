@@ -1,14 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { getPermissions, logout } from "../services/AuthService";
+import { getPermissions, logout, clearAuthState } from "../services/AuthService";
 import "./Sidebar.css";
 
 export default function MenuDropdown() {
     const [open, setOpen] = useState(false);
     const panelRef = useRef(null);
     const navigate = useNavigate();
-    const role = localStorage.getItem("userRole");
+    const role = sessionStorage.getItem("userRole");
 
     useEffect(() => {
         if (!open) return;
@@ -36,13 +36,14 @@ export default function MenuDropdown() {
     }, [open]);
 
     const handleLogout = async () => {
+        // AuthService.logout ima sopstveni try/finally — lokalno stanje je
+        // garantovano obrisano čak i ako backend /logout padne. Dodatni
+        // clearAuthState() poziv je defanzivan safety net ako logout
+        // import iz bilo kog razloga baci sinhrono.
         try {
             await logout();
         } catch {
-            localStorage.removeItem("accessToken");
-            localStorage.removeItem("refreshToken");
-            localStorage.removeItem("userId");
-            localStorage.removeItem("userRole");
+            clearAuthState();
         }
 
         navigate("/login");

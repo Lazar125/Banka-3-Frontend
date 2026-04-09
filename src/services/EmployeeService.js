@@ -68,8 +68,10 @@ export async function updateEmployee(id, data) {
   return response.data;
 }
 
-// 5. BRISANJE zaposlenog
+// 5. BRISANJE zaposlenog - SOFT DELETE, postavlja active na false
 export async function deleteEmployee(id) {
-  const response = await api.delete(`/employees/${id}`);
+  const response = await api.patch(`/employees/${id}`, {
+    active: false
+  });
   return response.data;
 }

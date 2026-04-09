@@ -1,8 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { getCurrentUserEmail } from "../../services/AuthService";
+import { deleteEmployee } from "../../services/EmployeeService";
 import "./EmployeeRow.css";
 
-function EmployeeRow({ employee }) {
+function EmployeeRow({ employee, onEmployeeDeleted }) {
     const navigate = useNavigate();
     const currentUserEmail = String(getCurrentUserEmail() || "").toLowerCase();
     const employeeEmail = String(employee.email || "").toLowerCase();
@@ -17,6 +18,19 @@ function EmployeeRow({ employee }) {
 
     function openEditEmployee() {
         navigate(`/employees/edit/${employee.id}`);
+    }
+
+    async function handleDeleteEmployee() {
+        if (window.confirm(`Sigurno želiš da deaktiviureš zaposlenog ${employee.firstName} ${employee.lastName}?`)) {
+            try {
+                await deleteEmployee(employee.id);
+                if (onEmployeeDeleted) {
+                    onEmployeeDeleted(employee.id);
+                }
+            } catch (error) {
+                alert("Greška pri deaktivaciji zaposlenog: " + error.message);
+            }
+        }
     }
 
     return (
@@ -60,7 +74,11 @@ function EmployeeRow({ employee }) {
                             </svg>
                         </button>
 
-                        <button className="icon-btn delete-btn" title="Obriši">
+                        <button 
+                            className="icon-btn delete-btn" 
+                            onClick={handleDeleteEmployee}
+                            title="Deaktiviraj"
+                        >
                             <svg
                                 width="15"
                                 height="15"

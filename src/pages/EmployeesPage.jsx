@@ -45,17 +45,19 @@ function EmployeesPage() {
   }, [employees]);
 
   const filteredEmployees = useMemo(() => {
-    return employees.filter((employee) => {
-      const searchLower = searchTerm.toLowerCase();
-      const matchesSearch =
-          (employee.first_name || "").toLowerCase().includes(searchLower) ||
-          (employee.last_name || "").toLowerCase().includes(searchLower) ||
-          (employee.email || "").toLowerCase().includes(searchLower);
-      const matchesPosition =
-          !filterPosition || employee.position === filterPosition;
-      return matchesSearch && matchesPosition;
-    });
-  }, [employees, searchTerm, filterPosition]);
+    return employees
+      .filter(employee => isAdmin ? true : employee.active)
+      .filter((employee) => {
+        const searchLower = searchTerm.toLowerCase();
+        const matchesSearch =
+            (employee.first_name || "").toLowerCase().includes(searchLower) ||
+            (employee.last_name || "").toLowerCase().includes(searchLower) ||
+            (employee.email || "").toLowerCase().includes(searchLower);
+        const matchesPosition =
+            !filterPosition || employee.position === filterPosition;
+        return matchesSearch && matchesPosition;
+      });
+  }, [employees, searchTerm, filterPosition, isAdmin]);
 
   function openCreateEmployee() {
     navigate("/employees/create");
@@ -64,6 +66,10 @@ function EmployeesPage() {
   function handleResetFilters() {
     setSearchTerm("");
     setFilterPosition("");
+  }
+
+  function handleEmployeeDeleted(deletedEmployeeId) {
+    setEmployees(employees.filter(emp => emp.id !== deletedEmployeeId));
   }
 
   if (loading) {
@@ -153,7 +159,10 @@ function EmployeesPage() {
             </div>
 
             <div className="table-container">
-              <EmployeeTable employees={filteredEmployees} />
+              <EmployeeTable 
+                employees={filteredEmployees}
+                onEmployeeDeleted={handleEmployeeDeleted}
+              />
             </div>
           </div>
         </div>

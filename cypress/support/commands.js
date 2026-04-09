@@ -114,3 +114,10 @@ Cypress.Commands.add("resetAllFilters", () => {
   cy.contains("Resetuj sve filtere").click();
   cy.get(".pp-filter-pill--active").should("contain", "Sve");
 });
+
+Cypress.Commands.add("stubDeactivateEmployee", (employeeId, deactivatedEmployee) => {
+  cy.intercept("PATCH", `**/api/employees/${employeeId}`, {
+    statusCode: 200,
+    body: deactivatedEmployee,
+  }).as("patchEmployee");
+});

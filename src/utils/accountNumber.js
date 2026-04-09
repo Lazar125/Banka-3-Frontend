@@ -12,11 +12,6 @@ export function normalizeAccountNumberInput(value) {
 }
 
 export function isValidAccountNumber(value) {
-<<<<<<< HEAD
-  const normalized = normalizeAccountNumberInput(value);
-  return normalized.length > 0 && normalized.length <= MAX_ACCOUNT_NUMBER_LENGTH;
-=======
     const normalized = normalizeAccountNumberInput(value);
     return normalized.length === 18;
->>>>>>> 8d840c6 (fix: payment validation + totp handling)
 }

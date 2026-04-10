@@ -150,24 +150,11 @@ export default function PaymentPage() {
     if (!form.payment_code) errs.payment_code = "Unesite šifru plaćanja.";
     if (!form.purpose) errs.purpose = "Unesite svrhu uplate.";
 
-    function validate() {
-        const errs = {};
-        const accountRegex = /^\d{18}$/;
+    return errs;
+  }
 
-        if (!form.sender_account) errs.sender_account = "Izaberite vaš račun.";
-
-        if (!form.recipient_account) {
-            errs.recipient_account = "Unesite račun primaoca.";
-        } else if (!accountRegex.test(form.recipient_account)) {
-            errs.recipient_account = "Broj računa mora sadržati tačno 18 cifara.";
-        }
-
-        if (!form.recipient_name) errs.recipient_name = "Unesite naziv primaoca.";
-        if (!form.amount || isNaN(form.amount) || Number(form.amount) <= 0) {
-            errs.amount = "Unesite ispravan iznos.";
-        }
-        if (!form.payment_code) errs.payment_code = "Unesite šifru plaćanja.";
-        if (!form.purpose) errs.purpose = "Unesite svrhu uplate.";
+  async function handleSubmit(e) {
+    e.preventDefault();
 
     if (isBlocked) {
       setShowTotp(false);
@@ -247,15 +234,32 @@ export default function PaymentPage() {
           </div>
         </div>
 
-    async function handleTotpConfirm(totpCode) {
-        setSubmitting(true);
-        setTotpError("");
+        <div className="pay-card">
+          <form onSubmit={handleSubmit} noValidate>
+            <div className="pay-section">
+              <h3 className="pay-section-title">Sa kog računa plaćate?</h3>
 
-        try {
-            await createPayment(
-    { ...form, amount: Math.round(Number(form.amount) * 100) },
-    totpCode
-);
+              <div className="pay-field">
+                <label className="pay-label">Pošiljalac</label>
+                <select
+                  className={`pay-input ${errors.sender_account ? "pay-input--error" : ""}`}
+                  name="sender_account"
+                  value={form.sender_account}
+                  onChange={handleChange}
+                >
+                  <option value="">-- Izaberite račun --</option>
+                  {accounts.map((acc) => (
+                    <option key={acc.account_number} value={acc.account_number}>
+                      {acc.account_number} - {acc.balance.toLocaleString("sr-RS")}{" "}
+                      {acc.currency || ""}
+                    </option>
+                  ))}
+                </select>
+                {errors.sender_account && (
+                  <p className="pay-error-text">{errors.sender_account}</p>
+                )}
+              </div>
+            </div>
 
             <div className="pay-section">
               <h3 className="pay-section-title">Kome plaćate?</h3>

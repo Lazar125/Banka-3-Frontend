@@ -33,6 +33,7 @@ import TransferPage from "../pages/TransferPage.jsx";
 import EditClientPage from "../pages/EditClientPage.jsx";
 
 import SecurityDetailPage from "../pages/SecurityDetailPage.jsx";
+import ActuaryManagementPage from "../pages/ActuaryManagementPage.jsx";
 
 export default function AppRouter() {
   return (
@@ -60,6 +61,7 @@ export default function AppRouter() {
           <Route path="/clients/create" element={<ProtectedRoute requiredRole="employee"><CreateClientPage /></ProtectedRoute>} />
           <Route path="/clients/:id" element={<ProtectedRoute requiredRole="employee"><ClientDetailsPage /></ProtectedRoute>} />
           <Route path="/clients/edit/:id" element={<ProtectedRoute requiredRole="employee" requiredPermission="admin"><EditClientPage/></ProtectedRoute>}/>
+          <Route path="/actuary-management" element={<ProtectedRoute requiredPermission="supervisor"><ActuaryManagementPage /></ProtectedRoute>} />
 
         <Route path="/securities/:ticker" element={<ProtectedRoute requiredRole="employee"><SecurityDetailPage /></ProtectedRoute>} />
      

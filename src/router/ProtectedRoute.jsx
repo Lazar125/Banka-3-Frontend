@@ -7,14 +7,12 @@ export default function ProtectedRoute({ children, requiredRole, requiredPermiss
   }
 
   const userRole = sessionStorage.getItem("userRole");
-
   if (requiredRole && userRole && userRole !== requiredRole) {
     if (userRole === "client") {
       return <Navigate to="/dashboard" replace />;
     }
     return <Navigate to="/employees" replace />;
   }
-
   if (requiredPermission) {
     let permissions = [];
     try {
@@ -23,11 +21,23 @@ export default function ProtectedRoute({ children, requiredRole, requiredPermiss
       permissions = [];
     }
 
-    if (!permissions.includes(requiredPermission)) {
-      if (userRole === "client") {
-        return <Navigate to="/dashboard" replace />;
+    // Admin je automatski i Supervisor
+    // Ako traži SUPERVISOR permission, prihvati i ADMIN
+    if (requiredPermission === "supervisor") {
+      const hasAccess = permissions.includes("supervisor") || permissions.includes("admin");
+      if (!hasAccess) {
+        if (userRole === "client") {
+          return <Navigate to="/dashboard" replace />;
+        }
+        return <Navigate to="/employees" replace />;
       }
-      return <Navigate to="/employees" replace />;
+    } else {
+      if (!permissions.includes(requiredPermission)) {
+        if (userRole === "client") {
+          return <Navigate to="/dashboard" replace />;
+        }
+        return <Navigate to="/employees" replace />;
+      }
     }
   }
 

@@ -30,6 +30,7 @@ import BerzaPage from "../pages/BerzaPage.jsx";
 import PaymentPage from "../pages/PaymentPage.jsx";
 import TotpSetupPage from "../pages/TotpSetupPage.jsx";
 import TransferPage from "../pages/TransferPage.jsx";
+import TaxDashboardPage from "../pages/TaxDashboardPage.jsx";
 
 export default function AppRouter() {
   return (
@@ -76,6 +77,7 @@ export default function AppRouter() {
           <Route path="/loan-request" element={<ProtectedRoute requiredRole="client"><LoanApplicationPage /></ProtectedRoute>} />
           <Route path="/employee-loans" element={<ProtectedRoute requiredRole="employee"><EmployeeLoansPage /></ProtectedRoute>} />
           <Route path="/employee-loans-list" element={<ProtectedRoute requiredRole="employee"><EmployeeLoansListPage /></ProtectedRoute>} />
+          <Route path="/tax" element={<ProtectedRoute requiredRole="employee"><TaxDashboardPage /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
   );

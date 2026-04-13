@@ -101,7 +101,8 @@ export default function MenuDropdown() {
                         { label: "Zahtevi za kredit", path: "/employee-loans" },
                         { label: "Svi krediti", path: "/employee-loans-list" },
                     ],
-                }
+                },
+                { title: "Porez", items: [{ label: "Porez na kapitalnu dobit", path: "/tax" }] }
             );
 
             if (isAdmin) {

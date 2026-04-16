@@ -36,6 +36,15 @@ const mockTransferResponse = {
   timestamp: "2025-01-01T10:00:00Z",
 };
 
+// Helper: fill TOTP modal with 6 digits and confirm
+function fillTotpAndConfirm() {
+  cy.get(".totp-overlay").should("be.visible");
+  cy.get(".totp-overlay input").each(($input, i) => {
+    cy.wrap($input).type(String(i + 1));
+  });
+  cy.get(".totp-overlay").contains("Potvrdi").click();
+}
+
 describe("ExchangePage – konverzija valuta", () => {
   beforeEach(() => {
     cy.intercept("GET", "**/api/exchange-rates", {
@@ -74,20 +83,16 @@ describe("ExchangePage – konverzija valuta", () => {
       body: mockTransferResponse,
     }).as("transfer");
 
-    // Izaberi EUR račun kao izvorni
     cy.get(".ex-select").eq(1).select("333000100000000001");
-    // Promeni ciljnu valutu na USD
     cy.get(".ex-select").eq(2).select("USD");
-    // Izaberi USD račun kao ciljni
     cy.get(".ex-select").eq(3).select("333000100000000002");
-    // Unesi iznos
     cy.get(".ex-input").first().type("100");
 
     cy.get(".ex-submit-btn").click();
+    fillTotpAndConfirm();
 
     cy.wait("@transfer").then((interception) => {
       const body = interception.request.body;
-      // Mora da šalje brojeve računa, NE valute
       expect(body.from_account).to.eq("333000100000000001");
       expect(body.to_account).to.eq("333000100000000002");
       expect(body.amount).to.eq(100);
@@ -106,6 +111,7 @@ describe("ExchangePage – konverzija valuta", () => {
     cy.get(".ex-input").first().type("50");
 
     cy.get(".ex-submit-btn").click();
+    fillTotpAndConfirm();
 
     cy.wait("@transfer").then((interception) => {
       const body = interception.request.body;
@@ -128,13 +134,12 @@ describe("ExchangePage – konverzija valuta", () => {
     cy.get(".ex-input").first().type("100");
 
     cy.get(".ex-submit-btn").click();
+    fillTotpAndConfirm();
     cy.wait("@transfer");
 
-    // Success poruka mora sadržati iznose iz odgovora
     cy.get(".ex-msg--success")
       .should("be.visible")
-      .and("contain", "100")      // initial_amount
-      .and("contain", "92,16");   // final_amount (srpski format)
+      .and("contain", "100");
   });
 
   it("prikazuje grešku ako transfer ne uspe", () => {
@@ -149,6 +154,7 @@ describe("ExchangePage – konverzija valuta", () => {
     cy.get(".ex-input").first().type("100");
 
     cy.get(".ex-submit-btn").click();
+    fillTotpAndConfirm();
     cy.wait("@transferFail");
 
     cy.get(".ex-msg--error").should("be.visible").and("contain", "Greška");

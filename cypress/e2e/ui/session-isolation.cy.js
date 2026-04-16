@@ -98,6 +98,9 @@ describe("Izolacija sesija po tabu (#161)", () => {
 
     cy.visit("/employees");
     cy.wait("@refreshToken");
+    // Wait for the retried request to ensure the refresh promise has fully resolved
+    // and tokens have been written to sessionStorage
+    cy.wait("@getEmployees");
 
     cy.window().then((win) => {
       // Novi tokeni moraju biti u sessionStorage

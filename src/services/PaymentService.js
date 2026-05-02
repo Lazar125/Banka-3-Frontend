@@ -64,6 +64,39 @@ export async function getTransactions(filters = {}) {
     throw error;
   }
 }
+// Konverzija: dinari → pare (za slanje na API)
+export function toCents(amount) {
+    return Math.round(Number(amount) * 100);
+}
+
+// Konverzija: pare → dinari (za prikaz)
+export function fromCents(amount) {
+    return Number(amount) / 100;
+}
+export function isInvalidTotpError(error) {
+  const status = error?.response?.status;
+  const raw =
+    error?.response?.data?.message ||
+    error?.response?.data?.error ||
+    error?.response?.data?.details ||
+    error?.response?.data ||
+    "";
+
+  const message = String(raw).toLowerCase().trim();
+
+  return (
+    status === 401 ||
+    status === 403 ||
+    message.includes("totp") ||
+    message.includes("wrong code") ||
+    message.includes("invalid code") ||
+    message.includes("invalid totp") ||
+    message.includes("invalid otp") ||
+    message.includes("neispravan kod") ||
+    message.includes("pogrešan kod") ||
+    message.includes("pogresan kod")
+  );
+}
 
 export async function createRecipient(recipientData) {
   const payload = {

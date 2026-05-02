@@ -93,7 +93,7 @@ describe("TransferPage", () => {
       const body = interception.request.body;
       expect(body.from_account).to.eq("333000112345678910");
       expect(body.to_account).to.eq("333000198765432100");
-      expect(body.amount).to.eq(5000);
+      expect(body.amount).to.eq(500000);
     });
   });
 
@@ -115,6 +115,25 @@ describe("TransferPage", () => {
     cy.get(".totp-overlay").should("not.exist");
     cy.get(".pay-success").should("contain", "uspešno");
   });
+  
+  it("šalje iznos u parama (množenje sa 100)", () => {
+  cy.intercept("POST", "**/api/transactions/transfer", {
+    statusCode: 200,
+    body: { message: "ok" },
+  }).as("transferRequest");
+
+  cy.get("select").first().select("333000112345678910");
+  cy.get("select").eq(1).select("333000198765432100");
+  cy.get('input[type="number"]').type("100");
+
+  cy.get(".pay-btn-submit").click();
+  unesiTotpKod("654321");
+  cy.get(".totp-btn-confirm").click();
+
+  cy.wait("@transferRequest").then((interception) => {
+    expect(interception.request.body.amount).to.eq(10000); // 100 * 100
+  });
+});
 });
 
 function unesiTotpKod(code) {

@@ -6,7 +6,10 @@ import Sidebar from "../components/Sidebar.jsx";
 import "./PaymentsPage.css";
 
 function fmt(amount, currency = "RSD") {
-    return `${Math.abs(amount).toLocaleString("sr-RS")} ${currency}`;
+    return `${(Math.abs(amount) / 100).toLocaleString("sr-RS", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    })} ${currency}`;
 }
 
 function formatDate(timestamp) {

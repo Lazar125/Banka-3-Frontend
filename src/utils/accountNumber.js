@@ -12,6 +12,6 @@ export function normalizeAccountNumberInput(value) {
 }
 
 export function isValidAccountNumber(value) {
-  const normalized = normalizeAccountNumberInput(value);
-  return normalized.length > 0 && normalized.length <= MAX_ACCOUNT_NUMBER_LENGTH;
+    const normalized = normalizeAccountNumberInput(value);
+    return normalized.length === 18;
 }

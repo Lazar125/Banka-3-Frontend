@@ -59,7 +59,7 @@ export default function TransferPage() {
     setPendingPayload({
       from_account: fromAccount,
       to_account: toAccount,
-      amount: Number(amount),
+        amount: Math.round(Number(amount) * 100),
     });
     setTotpError("");
     setShowTotp(true);

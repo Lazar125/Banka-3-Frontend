@@ -1,222 +1,232 @@
-.pf-page {
-  position: fixed;
-  inset: 0;
-  overflow-y: auto;
-  background: #0f172a;
-  color: #f1f5f9;
-  padding: 20px 24px 60px;
-  font-family: 'Inter', sans-serif;
+.portfolio-page {
+    padding: 40px 48px;
+    min-height: 100vh;
+    color: #f1f5f9;
+    font-family: 'Inter', sans-serif;
 }
 
-.pf-title {
-  margin: 0 0 16px 0;
-  font-size: 1.6rem;
-  font-weight: 700;
+.portfolio-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #f1f5f9;
+    letter-spacing: -0.02em;
+    margin-bottom: 28px;
 }
 
-.pf-summary {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
-  margin-bottom: 18px;
+/* ── Summary kartice ── */
+.portfolio-summaries {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
 }
 
-.pf-summary-card {
-  background: #111827;
-  border: 1px solid #1e293b;
-  border-radius: 10px;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.portfolio-summary {
+    flex: 1;
+    min-width: 240px;
+.portfolio-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 28px;
+    border-radius: 16px;
+    margin-bottom: 28px;
+    border: 1px solid transparent;
 }
 
-.pf-summary-label {
-  color: #94a3b8;
-  font-size: 0.8rem;
+.portfolio-summary.summary--profit {
+    background: rgba(16, 185, 129, 0.08);
+    border-color: rgba(16, 185, 129, 0.20);
 }
 
-.pf-summary-value {
-  font-size: 1.15rem;
-  font-weight: 700;
+.portfolio-summary.summary--loss {
+    background: rgba(248, 113, 113, 0.08);
+    border-color: rgba(248, 113, 113, 0.20);
 }
 
-.pf-pos { color: #10b981; }
-.pf-neg { color: #ef4444; }
-
-.pf-error,
-.pf-success {
-  padding: 10px 12px;
-  border-radius: 8px;
-  margin-bottom: 12px;
+.portfolio-summary.summary--neutral {
+    background: rgba(99, 102, 241, 0.08);
+    border-color: rgba(99, 102, 241, 0.20);
 }
 
-.pf-error {
-  background: #450a0a;
-  border: 1px solid #991b1b;
-  color: #fca5a5;
+.summary-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
-.pf-success {
-  background: #064e3b;
-  border: 1px solid #065f46;
-  color: #6ee7b7;
+.summary-value {
+    font-size: 24px;
+    font-weight: 700;
 }
 
-.pf-table-wrap {
-  background: #111827;
-  border: 1px solid #1e293b;
-  border-radius: 12px;
-  overflow-x: auto;
+.summary--profit .summary-value {
+    color: #34d399;
 }
 
-.pf-empty {
-  padding: 24px;
-  text-align: center;
-  color: #94a3b8;
+.summary--loss .summary-value {
+    color: #f87171;
 }
 
-.pf-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.88rem;
+.summary-value--neutral {
+    color: #818cf8;
 }
 
-.pf-table thead th {
-  background: #1e293b;
-  color: #94a3b8;
-  padding: 10px 12px;
-  text-align: left;
-  white-space: nowrap;
+/* ── Table ── */
+.portfolio-table-wrapper {
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    overflow-x: auto;
 }
 
-.pf-table tbody tr {
-  border-top: 1px solid #1e293b;
+.portfolio-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #111827;
 }
 
-.pf-table td {
-  padding: 9px 12px;
-  white-space: nowrap;
+.portfolio-table thead {
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.pf-ticker {
-  font-weight: 600;
+.portfolio-table th {
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
 }
 
-.pf-actions { display: flex; gap: 6px; }
-
-.pf-btn,
-.pf-public-btn {
-  background: #111827;
-  border: 1px solid #1e293b;
-  color: #cbd5e1;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.82rem;
-  cursor: pointer;
+.portfolio-table td {
+    padding: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    font-size: 14px;
+    color: #e2e8f0;
 }
 
-.pf-btn--sell {
-  border-color: #f59e0b;
-  color: #f59e0b;
+.portfolio-table tbody tr:last-child td {
+    border-bottom: none;
 }
 
-.pf-btn--exercise {
-  border-color: #3b82f6;
-  color: #3b82f6;
+.portfolio-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.02);
 }
 
-.pf-public-edit {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+/* ── Cells ── */
+.security-type-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(99, 102, 241, 0.12);
+    color: #818cf8;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
-.pf-public-edit input {
-  width: 80px;
-  background: #0f172a;
-  border: 1px solid #1e293b;
-  color: #f1f5f9;
-  padding: 4px 8px;
-  border-radius: 6px;
+.ticker {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    color: #60a5fa;
+    font-size: 14px;
 }
 
-.pf-public-edit button {
-  background: #1e293b;
-  border: none;
-  color: #f1f5f9;
-  padding: 4px 8px;
-  border-radius: 6px;
-  cursor: pointer;
+.security-name {
+    color: #94a3b8;
+    font-size: 13px;
 }
 
-.pf-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
+.position-value {
+    font-weight: 600;
+    color: #e2e8f0;
 }
 
-.pf-modal {
-  background: #111827;
-  border: 1px solid #1e293b;
-  border-radius: 14px;
-  padding: 24px;
-  width: 100%;
-  max-width: 420px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.pl {
+    font-weight: 700;
+    font-size: 14px;
 }
 
-.pf-modal h2 {
-  margin: 0;
-  font-size: 1.1rem;
+.pl--profit {
+    color: #34d399;
 }
 
-.pf-modal label {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 0.85rem;
-  color: #94a3b8;
+.pl--loss {
+    color: #f87171;
 }
 
-.pf-modal input,
-.pf-modal select {
-  background: #0f172a;
-  border: 1px solid #1e293b;
-  color: #f1f5f9;
-  padding: 8px 12px;
-  border-radius: 8px;
+/* ── Sell button ── */
+.sell-btn {
+    padding: 8px 20px;
+    background: linear-gradient(145deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
 }
 
-.pf-modal-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
+.sell-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.30);
 }
 
-.pf-modal-actions button {
-  flex: 1;
-  background: #1e293b;
-  border: none;
-  color: #f1f5f9;
-  padding: 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
+/* ── Empty state ── */
+.portfolio-empty {
+    text-align: center;
+    padding: 60px 20px;
+    font-size: 16px;
+    color: #64748b;
 }
 
-.pf-modal-actions button:last-child {
-  background: #3b82f6;
-}
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .portfolio-page {
+        padding: 24px 20px;
+    }
 
-.pf-modal-actions button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+    .portfolio-title {
+        font-size: 20px;
+    }
+
+    .portfolio-summaries {
+        flex-direction: column;
+    }
+
+    .portfolio-summary {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .summary-value {
+        font-size: 20px;
+    }
+
+    .portfolio-table th,
+    .portfolio-table td {
+        padding: 10px 12px;
+        font-size: 12px;
+    }
+
+    .sell-btn {
+        padding: 6px 14px;
+        font-size: 12px;
+    }
+    .pl--profit {
+        color: #34d399 !important;
+    }
+
+    .pl--loss {
+        color: #f87171 !important;
+    }
+
 }

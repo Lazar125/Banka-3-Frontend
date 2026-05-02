@@ -5,13 +5,10 @@ import Sidebar from "../components/Sidebar.jsx";
 import "./AccountsPage.css";
 
 function fmt(amount, currency) {
-    if (amount == null) return "—";
-
     const formattedAmount = new Intl.NumberFormat("sr-RS", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-    }).format(amount);
-
+    }).format(Math.abs(amount) / 100);
     return currency ? `${formattedAmount} ${currency}` : formattedAmount;
 }
 

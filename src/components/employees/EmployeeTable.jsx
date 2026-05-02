@@ -1,7 +1,7 @@
 import EmployeeRow from "./EmployeeRow";
 import "./EmployeeTable.css";
 
-function EmployeeTable({ employees }) {
+function EmployeeTable({ employees, onEmployeeDeleted }) {
   if (employees.length === 0) {
     return (
       <div className="no-results">
@@ -11,7 +11,6 @@ function EmployeeTable({ employees }) {
   }
 
   return (
-    /* NOVO: table-scroll pomaže ako tabela bude šira na manjim ekranima */
     <div className="table-scroll">
       <table className="employee-table">
         <thead>
@@ -27,7 +26,11 @@ function EmployeeTable({ employees }) {
 
         <tbody>
           {employees.map(employee => (
-            <EmployeeRow key={employee.id} employee={employee} />
+            <EmployeeRow 
+              key={employee.id} 
+              employee={employee}
+              onEmployeeDeleted={onEmployeeDeleted}
+            />
           ))}
         </tbody>
       </table>

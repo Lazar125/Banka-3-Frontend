@@ -1,33 +1,28 @@
-import api from "./api.js";
+// Mock order service — simulira backend
 
-// Place a new order. Exactly one of listing_id/option_id/forex_pair_id must be set.
-// limit_price/stop_price required only for LIMIT/STOP/STOP_LIMIT.
-export async function createOrder(payload) {
-  const response = await api.post("/orders", payload);
-  return response.data;
-}
+export const createOrder = (order) => {
+  return new Promise((resolve, reject) => {
 
-// Supervisor feed.
-export async function getOrders(params = {}) {
-  const cleaned = {};
-  Object.entries(params).forEach(([k, v]) => {
-    if (v !== "" && v !== null && v !== undefined) cleaned[k] = v;
-  });
-  const response = await api.get("/orders", { params: cleaned });
-  return response.data || [];
-}
+    console.log("Sending order:", order)
 
-export async function approveOrder(id) {
-  const response = await api.post(`/orders/${id}/approve`);
-  return response.data;
-}
+    setTimeout(() => {
 
-export async function declineOrder(id) {
-  const response = await api.post(`/orders/${id}/decline`);
-  return response.data;
-}
+      if (!order || !order.quantity || order.quantity <= 0) {
+        reject({
+          status: "ERROR",
+          message: "Invalid order data"
+        })
+        return
+      }
 
-export async function cancelOrder(id) {
-  const response = await api.post(`/orders/${id}/cancel`);
-  return response.data;
+      resolve({
+        status: "SUCCESS",
+        orderId: Math.floor(Math.random() * 100000),
+        executedPrice: order.price,
+        total: order.quantity * order.price,
+        timestamp: new Date().toISOString()
+      })
+
+    }, 700)
+  })
 }

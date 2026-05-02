@@ -28,15 +28,15 @@ import ClientDashboardPage from "../pages/ClientDashboardPage.jsx";
 import ExchangePage from "../pages/ExchangePage.jsx";
 import BerzaPage from "../pages/BerzaPage.jsx";
 import PaymentPage from "../pages/PaymentPage.jsx";
+import PortfolioPage from "../pages/PortfolioPage.jsx";
 import TotpSetupPage from "../pages/TotpSetupPage.jsx";
 import TransferPage from "../pages/TransferPage.jsx";
+import TaxDashboardPage from "../pages/TaxDashboardPage.jsx";
 import EditClientPage from "../pages/EditClientPage.jsx";
+import SecurityDetailPage from "../pages/SecurityDetailPage.jsx";
 import SecuritiesPage from "../pages/SecuritiesPage.jsx";
-import SecurityDetailsPage from "../pages/SecurityDetailsPage.jsx";
-import OrdersPage from "../pages/OrdersPage.jsx";
-import PortfolioPage from "../pages/PortfolioPage.jsx";
-import ActuariesPage from "../pages/ActuariesPage.jsx";
-import TaxPage from "../pages/TaxPage.jsx";
+import ActuaryManagementPage from "../pages/ActuaryManagementPage.jsx";
+import TradingPage from "../pages/TradingPage.jsx";
 
 export default function AppRouter() {
   return (
@@ -46,28 +46,33 @@ export default function AppRouter() {
 
           <Route path="/login" element={<LoginPage />} />
 
+
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/enter-token" element={<EnterTokenPage />} />
           <Route path="/reset-password" element={<ChangePasswordPage />} />
           <Route path="/set-password" element={<ChangePasswordPage />} />
 
           <Route path="/dashboard" element={<ProtectedRoute requiredRole="client"><ClientDashboardPage /></ProtectedRoute>} />
-
+          <Route path="/options" element={<ProtectedRoute requiredRole="client"><TradingPage /></ProtectedRoute>} />
           <Route path="/accounts" element={<ProtectedRoute requiredRole="client"><AccountsPage /></ProtectedRoute>} />
-          <Route path="/accounts/create" element={<ProtectedRoute requiredRole="employee" requiredPermission="manage_accounts"><CreateAccountPage /></ProtectedRoute>} />
-          <Route path="/admin/accounts" element={<ProtectedRoute requiredRole="employee" requiredPermission="manage_accounts"><AccountsPage /></ProtectedRoute>} />
-          <Route path="/admin/accounts/:accountNumber" element={<ProtectedRoute requiredRole="employee" requiredPermission="manage_accounts"><AdminAccountDetailsPage /></ProtectedRoute>} />
-          <Route path="/admin/accounts/business/:accountNumber" element={<ProtectedRoute requiredRole="employee" requiredPermission="manage_accounts"><AdminAccountDetailsPage /></ProtectedRoute>} />
-          <Route path="/employees" element={<ProtectedRoute requiredRole="employee" requiredPermission="manage_employees"><EmployeesPage /></ProtectedRoute>} />
+          <Route path="/accounts/create" element={<ProtectedRoute requiredRole="employee"><CreateAccountPage /></ProtectedRoute>} />
+          <Route path="/admin/accounts" element={<ProtectedRoute requiredRole="employee"><AccountsPage /></ProtectedRoute>} />
+          <Route path="/admin/accounts/:accountNumber" element={<ProtectedRoute requiredRole="employee"><AdminAccountDetailsPage /></ProtectedRoute>} />
+          <Route path="/admin/accounts/business/:accountNumber" element={<ProtectedRoute requiredRole="employee"><AdminAccountDetailsPage /></ProtectedRoute>} />
+          <Route path="/employees" element={<ProtectedRoute requiredRole="employee"><EmployeesPage /></ProtectedRoute>} />
 
-          <Route path="/clients" element={<ProtectedRoute requiredRole="employee" requiredPermission="manage_clients"><ClientsPage /></ProtectedRoute>} />
-          <Route path="/clients/create" element={<ProtectedRoute requiredRole="employee" requiredPermission="manage_clients"><CreateClientPage /></ProtectedRoute>} />
-          <Route path="/clients/:id" element={<ProtectedRoute requiredRole="employee" requiredPermission="manage_clients"><ClientDetailsPage /></ProtectedRoute>} />
-          <Route path="/clients/edit/:id" element={<ProtectedRoute requiredRole="employee" requiredPermission="manage_clients"><EditClientPage/></ProtectedRoute>}/>
+          <Route path="/clients" element={<ProtectedRoute requiredRole="employee"><ClientsPage /></ProtectedRoute>} />
+          <Route path="/clients/create" element={<ProtectedRoute requiredRole="employee"><CreateClientPage /></ProtectedRoute>} />
+          <Route path="/clients/:id" element={<ProtectedRoute requiredRole="employee"><ClientDetailsPage /></ProtectedRoute>} />
+          <Route path="/clients/edit/:id" element={<ProtectedRoute requiredRole="employee" requiredPermission="admin"><EditClientPage/></ProtectedRoute>}/>
+          <Route path="/actuary-management" element={<ProtectedRoute requiredPermission="supervisor"><ActuaryManagementPage /></ProtectedRoute>} />
 
-          <Route path="/employees/create" element={<ProtectedRoute requiredRole="employee" requiredPermission="manage_employees"><CreateEmployeePage /></ProtectedRoute>}/>
-          <Route path="/employees/edit/:id" element={<ProtectedRoute requiredRole="employee" requiredPermission="manage_employees"><EditEmployeePage /></ProtectedRoute>} />
-          <Route path="/employees/:id" element={<ProtectedRoute requiredRole="employee" requiredPermission="manage_employees"><EmployeeDetailsPage /></ProtectedRoute>} />
+        <Route path="/securities" element={<ProtectedRoute><SecuritiesPage /></ProtectedRoute>} />
+        <Route path="/securities/:ticker" element={<ProtectedRoute requiredRole="employee"><SecurityDetailPage /></ProtectedRoute>} />
+     
+          <Route path="/employees/create" element={<ProtectedRoute requiredRole="employee" requiredPermission="admin"><CreateEmployeePage /></ProtectedRoute>}/>
+          <Route path="/employees/edit/:id" element={<ProtectedRoute requiredRole="employee"><EditEmployeePage /></ProtectedRoute>} />
+          <Route path="/employees/:id" element={<ProtectedRoute requiredRole="employee"><EmployeeDetailsPage /></ProtectedRoute>} />
           <Route path="/recipients" element={<ProtectedRoute requiredRole="client"><RecipientsPage /></ProtectedRoute>} />
           <Route path="/payments" element={<ProtectedRoute requiredRole="client"><PaymentsPage /></ProtectedRoute>} />
           <Route path="/accounts/business/:id" element={<ProtectedRoute><BusinessDetailsPage /></ProtectedRoute>}/>
@@ -77,20 +82,15 @@ export default function AppRouter() {
           <Route path="/transfer" element={<ProtectedRoute requiredRole="client"><TransferPage /></ProtectedRoute>} />
 
           <Route path="/accounts/:accountNumber" element={<ProtectedRoute requiredRole="client"><AccountDetailsPage /></ProtectedRoute>} />
+          <Route path="/portfolio" element={<ProtectedRoute requiredRole="client"><PortfolioPage /></ProtectedRoute>} />
           <Route path="/exchange" element={<ProtectedRoute requiredRole="client"><ExchangePage /></ProtectedRoute>} />
-
-          <Route path="/securities" element={<ProtectedRoute><SecuritiesPage /></ProtectedRoute>} />
-          <Route path="/securities/:id" element={<ProtectedRoute><SecurityDetailsPage /></ProtectedRoute>} />
-          <Route path="/portfolio" element={<ProtectedRoute><PortfolioPage /></ProtectedRoute>} />
-          <Route path="/orders" element={<ProtectedRoute requiredRole="employee" requiredPermission="supervisor"><OrdersPage /></ProtectedRoute>} />
-          <Route path="/actuaries" element={<ProtectedRoute requiredRole="employee" requiredPermission="supervisor"><ActuariesPage /></ProtectedRoute>} />
-          <Route path="/tax" element={<ProtectedRoute requiredRole="employee" requiredPermission="supervisor"><TaxPage /></ProtectedRoute>} />
-          <Route path="/berza" element={<ProtectedRoute requiredRole="employee" requiredPermission="supervisor"><BerzaPage /></ProtectedRoute>} />
+          <Route path="/berza" element={<ProtectedRoute requiredRole="employee"><BerzaPage /></ProtectedRoute>} />
 
           <Route path="/loans" element={<ProtectedRoute requiredRole="client"><LoansPage /></ProtectedRoute>} />
           <Route path="/loan-request" element={<ProtectedRoute requiredRole="client"><LoanApplicationPage /></ProtectedRoute>} />
-          <Route path="/employee-loans" element={<ProtectedRoute requiredRole="employee" requiredPermission="manage_loans"><EmployeeLoansPage /></ProtectedRoute>} />
-          <Route path="/employee-loans-list" element={<ProtectedRoute requiredRole="employee" requiredPermission="manage_loans"><EmployeeLoansListPage /></ProtectedRoute>} />
+          <Route path="/employee-loans" element={<ProtectedRoute requiredRole="employee"><EmployeeLoansPage /></ProtectedRoute>} />
+          <Route path="/employee-loans-list" element={<ProtectedRoute requiredRole="employee"><EmployeeLoansListPage /></ProtectedRoute>} />
+          <Route path="/tax" element={<ProtectedRoute requiredRole="employee"><TaxDashboardPage /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
   );

@@ -37,10 +37,6 @@ export default function MenuDropdown() {
     }, [open]);
 
     const handleLogout = async () => {
-        // AuthService.logout ima sopstveni try/finally — lokalno stanje je
-        // garantovano obrisano čak i ako backend /logout padne. Dodatni
-        // clearAuthState() poziv je defanzivan safety net ako logout
-        // import iz bilo kog razloga baci sinhrono.
         try {
             await logout();
         } catch {
@@ -55,9 +51,6 @@ export default function MenuDropdown() {
         const sections = [];
         const permissions = getPermissions();
         const isSupervisor = permissions.includes("admin") || permissions.includes("supervisor");
-        // hasPermission auto-grants if the user has `admin`, so granular
-        // checks below also work for the seeded admin without listing
-        // every permission on their record.
         const canManageClients = hasPermission("manage_clients");
         const canManageEmployees = hasPermission("manage_employees");
         const canManageAccounts = hasPermission("manage_accounts");
@@ -97,6 +90,7 @@ export default function MenuDropdown() {
                     items: [
                         { label: "Hartije od vrednosti", path: "/securities" },
                         { label: "Moj portfolio", path: "/portfolio" },
+                        { label: "Opcije", path: "/options" },
                     ],
                 }
             );
@@ -133,18 +127,14 @@ export default function MenuDropdown() {
 
             sections.push({
                 title: "Trgovanje",
-                items: [
-                    { label: "Hartije od vrednosti", path: "/securities" },
-                    { label: "Moj portfolio", path: "/portfolio" },
-                ],
+                items: [{ label: "Hartije od vrednosti", path: "/securities" }],
             });
 
             if (isSupervisor) {
                 sections.push({
                     title: "Supervizor",
                     items: [
-                        { label: "Pregled ordera", path: "/orders" },
-                        { label: "Upravljanje aktuarima", path: "/actuaries" },
+                        { label: "Upravljanje aktuarima", path: "/actuary-management" },
                         { label: "Porez tracking", path: "/tax" },
                         { label: "Berze", path: "/berza" },
                     ],

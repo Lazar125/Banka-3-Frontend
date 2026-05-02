@@ -1,0 +1,222 @@
+.pf-page {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  background: #0f172a;
+  color: #f1f5f9;
+  padding: 20px 24px 60px;
+  font-family: 'Inter', sans-serif;
+}
+
+.pf-title {
+  margin: 0 0 16px 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.pf-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.pf-summary-card {
+  background: #111827;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pf-summary-label {
+  color: #94a3b8;
+  font-size: 0.8rem;
+}
+
+.pf-summary-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.pf-pos { color: #10b981; }
+.pf-neg { color: #ef4444; }
+
+.pf-error,
+.pf-success {
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.pf-error {
+  background: #450a0a;
+  border: 1px solid #991b1b;
+  color: #fca5a5;
+}
+
+.pf-success {
+  background: #064e3b;
+  border: 1px solid #065f46;
+  color: #6ee7b7;
+}
+
+.pf-table-wrap {
+  background: #111827;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.pf-empty {
+  padding: 24px;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.pf-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.pf-table thead th {
+  background: #1e293b;
+  color: #94a3b8;
+  padding: 10px 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.pf-table tbody tr {
+  border-top: 1px solid #1e293b;
+}
+
+.pf-table td {
+  padding: 9px 12px;
+  white-space: nowrap;
+}
+
+.pf-ticker {
+  font-weight: 600;
+}
+
+.pf-actions { display: flex; gap: 6px; }
+
+.pf-btn,
+.pf-public-btn {
+  background: #111827;
+  border: 1px solid #1e293b;
+  color: #cbd5e1;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.pf-btn--sell {
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+.pf-btn--exercise {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.pf-public-edit {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pf-public-edit input {
+  width: 80px;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  color: #f1f5f9;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.pf-public-edit button {
+  background: #1e293b;
+  border: none;
+  color: #f1f5f9;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.pf-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.pf-modal {
+  background: #111827;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  padding: 24px;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pf-modal h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.pf-modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.pf-modal input,
+.pf-modal select {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  color: #f1f5f9;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.pf-modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.pf-modal-actions button {
+  flex: 1;
+  background: #1e293b;
+  border: none;
+  color: #f1f5f9;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.pf-modal-actions button:last-child {
+  background: #3b82f6;
+}
+
+.pf-modal-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

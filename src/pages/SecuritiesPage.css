@@ -1,0 +1,146 @@
+.sec-page {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  background: #0f172a;
+  font-family: 'Inter', sans-serif;
+  padding: 20px 24px 60px;
+  color: #f1f5f9;
+}
+
+.sec-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.sec-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.sec-refresh {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sec-last-refresh {
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.sec-refresh-btn,
+.sec-tab,
+.sec-input {
+  background: #111827;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  color: #f1f5f9;
+  padding: 8px 14px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.sec-refresh-btn:hover {
+  background: #1a2234;
+}
+
+.sec-refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sec-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.sec-tab--active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.sec-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.sec-input {
+  cursor: text;
+}
+
+.sec-input[type="date"],
+select.sec-input {
+  cursor: pointer;
+}
+
+.sec-table-wrap {
+  background: #111827;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.sec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.sec-table thead th {
+  text-align: left;
+  padding: 12px 14px;
+  background: #1e293b;
+  color: #94a3b8;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sec-table tbody tr {
+  border-top: 1px solid #1e293b;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.sec-table tbody tr:hover {
+  background: #1a2234;
+}
+
+.sec-table td {
+  padding: 11px 14px;
+  white-space: nowrap;
+}
+
+.sec-ticker {
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.sec-pos {
+  color: #10b981;
+}
+
+.sec-neg {
+  color: #ef4444;
+}
+
+.sec-empty,
+.sec-error {
+  padding: 24px;
+  text-align: center;
+  background: #111827;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  color: #94a3b8;
+}
+
+.sec-error {
+  color: #ef4444;
+}

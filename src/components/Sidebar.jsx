@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { getPermissions, logout, clearAuthState } from "../services/AuthService";
+import { hasPermission } from "../utils/permissions";
 import "./Sidebar.css";
 
 export default function MenuDropdown() {
@@ -53,7 +54,15 @@ export default function MenuDropdown() {
     const getMenuSections = () => {
         const sections = [];
         const permissions = getPermissions();
-        const isAdmin = permissions.includes("admin");
+        const isSupervisor = permissions.includes("admin") || permissions.includes("supervisor");
+        // hasPermission auto-grants if the user has `admin`, so granular
+        // checks below also work for the seeded admin without listing
+        // every permission on their record.
+        const canManageClients = hasPermission("manage_clients");
+        const canManageEmployees = hasPermission("manage_employees");
+        const canManageAccounts = hasPermission("manage_accounts");
+        const canManageLoans = hasPermission("manage_loans");
+        const canManageCards = hasPermission("manage_cards");
 
         if (role === "client") {
             sections.push(
@@ -82,46 +91,84 @@ export default function MenuDropdown() {
                         { label: "Moji krediti", path: "/loans" },
                         { label: "Zahtev za kredit", path: "/loan-request" },
                     ],
+                },
+                {
+                    title: "Trgovanje",
+                    items: [
+                        { label: "Hartije od vrednosti", path: "/securities" },
+                        { label: "Moj portfolio", path: "/portfolio" },
+                    ],
                 }
             );
         }
 
         if (role === "employee") {
-            sections.push(
-                {
-                    title: "Računi",
-                    items: [
-                        { label: "Svi računi", path: "/admin/accounts" },
-                        { label: "Kreiraj račun", path: "/accounts/create" },
-                    ],
-                },
-                { title: "Kartice", items: [{ label: "Upravljanje karticama", path: "/cards" }] },
-                {
+            const accountItems = [];
+            if (canManageAccounts) {
+                accountItems.push(
+                    { label: "Svi računi", path: "/admin/accounts" },
+                    { label: "Kreiraj račun", path: "/accounts/create" }
+                );
+            }
+            if (accountItems.length) {
+                sections.push({ title: "Računi", items: accountItems });
+            }
+
+            if (canManageCards) {
+                sections.push({
+                    title: "Kartice",
+                    items: [{ label: "Upravljanje karticama", path: "/cards" }],
+                });
+            }
+
+            if (canManageLoans) {
+                sections.push({
                     title: "Krediti",
                     items: [
                         { label: "Zahtevi za kredit", path: "/employee-loans" },
                         { label: "Svi krediti", path: "/employee-loans-list" },
                     ],
-                }
-            );
+                });
+            }
 
-            if (isAdmin) {
-                sections.push(
-                    {
-                        title: "Zaposleni",
-                        items: [
-                            { label: "Lista zaposlenih", path: "/employees" },
-                            { label: "Dodaj zaposlenog", path: "/employees/create" },
-                        ],
-                    },
-                    {
-                        title: "Klijenti",
-                        items: [
-                            { label: "Lista klijenata", path: "/clients" },
-                            { label: "Kreiraj klijenta", path: "/clients/create" },
-                        ],
-                    }
-                );
+            sections.push({
+                title: "Trgovanje",
+                items: [
+                    { label: "Hartije od vrednosti", path: "/securities" },
+                    { label: "Moj portfolio", path: "/portfolio" },
+                ],
+            });
+
+            if (isSupervisor) {
+                sections.push({
+                    title: "Supervizor",
+                    items: [
+                        { label: "Pregled ordera", path: "/orders" },
+                        { label: "Upravljanje aktuarima", path: "/actuaries" },
+                        { label: "Porez tracking", path: "/tax" },
+                        { label: "Berze", path: "/berza" },
+                    ],
+                });
+            }
+
+            if (canManageEmployees) {
+                sections.push({
+                    title: "Zaposleni",
+                    items: [
+                        { label: "Lista zaposlenih", path: "/employees" },
+                        { label: "Dodaj zaposlenog", path: "/employees/create" },
+                    ],
+                });
+            }
+
+            if (canManageClients) {
+                sections.push({
+                    title: "Klijenti",
+                    items: [
+                        { label: "Lista klijenata", path: "/clients" },
+                        { label: "Kreiraj klijenta", path: "/clients/create" },
+                    ],
+                });
             }
         }
 

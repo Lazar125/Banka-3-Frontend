@@ -4,6 +4,7 @@ import "./CreateEmployeePage.css";
 import "./EmployeesPage.css";
 import { getEmployeeById, updateEmployee } from "../services/EmployeeService";
 import Sidebar from "../components/Sidebar.jsx";
+import { PERMISSIONS } from "../constants/permissions";
 
 function validate(form) {
   const errors = {};
@@ -38,16 +39,6 @@ export default function EditEmployeePage() {
     aktivan: true,
   });
 
-  const [allPermissions] = useState([
-    "trade_stocks",
-    "view_stocks",
-    "manage_contracts",
-    "manage_insurance",
-    "read_accounts",
-    "write_accounts",
-    "approve_loans",
-    "admin"
-  ]);
 
   const [selectedPermissions, setSelectedPermissions] = useState([]);
   const [errors, setErrors] = useState({});
@@ -128,8 +119,6 @@ export default function EditEmployeePage() {
     }
   }
 
-  const formatLabel = (perm) => perm.replace(/_/g, " ");
-
   if (notFound) {
     return (
       <div className="page-bg">
@@ -204,15 +193,15 @@ export default function EditEmployeePage() {
             <div className="permissions-section">
               <span className="permissions-label">Permisije</span>
               <div className="permissions-grid">
-                {allPermissions.map((perm) => (
-                  <label key={perm} className="permission-checkbox">
+                {PERMISSIONS.map((perm) => (
+                  <label key={perm.value} className="permission-checkbox">
                     <input
                       type="checkbox"
-                      checked={selectedPermissions.includes(normalize(perm))}
-                      onChange={() => togglePermission(perm)}
+                      checked={selectedPermissions.includes(normalize(perm.value))}
+                      onChange={() => togglePermission(perm.value)}
                     />
                     <span className="checkmark"></span>
-                    <span className="permission-text">{formatLabel(perm)}</span>
+                    <span className="permission-text">{perm.label}</span>
                   </label>
                 ))}
               </div>

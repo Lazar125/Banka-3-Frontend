@@ -1,0 +1,193 @@
+.act-page {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  background: #0f172a;
+  color: #f1f5f9;
+  padding: 20px 24px 60px;
+  font-family: 'Inter', sans-serif;
+}
+
+.act-title {
+  margin: 0 0 16px 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.act-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.act-filters input {
+  background: #111827;
+  border: 1px solid #1e293b;
+  color: #f1f5f9;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  min-width: 130px;
+}
+
+.act-filters button {
+  background: #3b82f6;
+  border: none;
+  color: #fff;
+  padding: 8px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.act-error,
+.act-success {
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.act-error {
+  background: #450a0a;
+  border: 1px solid #991b1b;
+  color: #fca5a5;
+}
+
+.act-success {
+  background: #064e3b;
+  border: 1px solid #065f46;
+  color: #6ee7b7;
+}
+
+.act-table-wrap {
+  background: #111827;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.act-empty {
+  padding: 24px;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.act-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.act-table thead th {
+  background: #1e293b;
+  color: #94a3b8;
+  padding: 10px 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.act-table tbody tr { border-top: 1px solid #1e293b; }
+.act-table td { padding: 9px 12px; white-space: nowrap; }
+
+.act-link {
+  background: transparent;
+  border: 1px dashed #475569;
+  color: #cbd5e1;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.act-link:hover { background: #1e293b; }
+
+.act-edit-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.act-edit-row input {
+  width: 120px;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  color: #f1f5f9;
+  padding: 5px 10px;
+  border-radius: 6px;
+}
+
+.act-edit-row button {
+  background: #1e293b;
+  border: none;
+  color: #f1f5f9;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.act-toggle {
+  background: #1e293b;
+  border: none;
+  color: #94a3b8;
+  padding: 5px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.act-toggle--on {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.act-btn--reset {
+  background: transparent;
+  border: 1px solid #f59e0b;
+  color: #f59e0b;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.act-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.act-modal {
+  background: #111827;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  padding: 24px;
+  max-width: 420px;
+  width: 100%;
+}
+
+.act-modal h2 { margin: 0 0 12px; font-size: 1.1rem; }
+
+.act-modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.act-modal-actions button {
+  flex: 1;
+  background: #1e293b;
+  border: none;
+  color: #f1f5f9;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.act-modal-actions button:last-child {
+  background: #3b82f6;
+}

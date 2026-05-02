@@ -1,0 +1,141 @@
+.orders-page {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  background: #0f172a;
+  color: #f1f5f9;
+  padding: 20px 24px 60px;
+  font-family: 'Inter', sans-serif;
+}
+
+.orders-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.orders-back-btn,
+.orders-refresh-btn,
+.orders-btn {
+  background: #111827;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  color: #cbd5e1;
+  padding: 8px 14px;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.orders-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.orders-filters {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.orders-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.82rem;
+  color: #94a3b8;
+}
+
+.orders-filters select,
+.orders-filters input {
+  background: #111827;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  color: #f1f5f9;
+  padding: 7px 12px;
+  font-size: 0.88rem;
+  min-width: 130px;
+}
+
+.orders-error {
+  background: #450a0a;
+  border: 1px solid #991b1b;
+  color: #fca5a5;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.orders-table-wrap {
+  background: #111827;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.orders-empty {
+  padding: 24px;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.orders-table thead th {
+  background: #1e293b;
+  color: #94a3b8;
+  text-align: left;
+  padding: 10px 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.orders-table tbody tr {
+  border-top: 1px solid #1e293b;
+}
+
+.orders-table td {
+  padding: 9px 12px;
+  white-space: nowrap;
+}
+
+.orders-status {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.orders-status--pending { color: #f59e0b; }
+.orders-status--approved { color: #3b82f6; }
+.orders-status--done { color: #10b981; }
+.orders-status--declined,
+.orders-status--cancelled { color: #ef4444; }
+
+.orders-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.orders-btn--approve {
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.orders-btn--decline,
+.orders-btn--cancel {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.orders-btn:hover { background: #1a2234; }
+
+.orders-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

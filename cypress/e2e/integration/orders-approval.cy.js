@@ -102,7 +102,10 @@ describe("Odobravanje i pregled naloga — #48–58", () => {
   it.skip("#51: order na ivici limita prolazi bez approval", () => {});
 
   // #52: supervizor odobrava pending order — frontend flow on /orders
-  it("#52: supervizor approve-uje pending → status approved + approved_by", () => {
+  // TODO: /orders page was on this branch's dropped trading UI; main has no
+  // equivalent supervisor orders portal yet. Skip UI-driven approval flow
+  // until a replacement exists.
+  it.skip("#52: supervizor approve-uje pending → status approved + approved_by", () => {
     cy.loginAs("agent");
     cy.findListingByTicker(TICKER).then((l) => {
       cy.createOrderApi({
@@ -128,8 +131,8 @@ describe("Odobravanje i pregled naloga — #48–58", () => {
     });
   });
 
-  // #53: supervizor odbija pending order
-  it("#53: supervizor decline-uje pending → status declined", () => {
+  // #53: supervizor odbija pending order — UI flow on dropped /orders page
+  it.skip("#53: supervizor decline-uje pending → status declined", () => {
     cy.loginAs("agent");
     cy.findListingByTicker(TICKER).then((l) => {
       cy.createOrderApi({
@@ -151,8 +154,8 @@ describe("Odobravanje i pregled naloga — #48–58", () => {
     });
   });
 
-  // #54: order sa proslim settlement-om → samo Decline, nema Approve dugmeta
-  it("#54: order na future-u sa proslim datumom: nema Approve dugmeta", () => {
+  // #54: order sa proslim settlement-om — UI flow on dropped /orders page
+  it.skip("#54: order na future-u sa proslim datumom: nema Approve dugmeta", () => {
     cy.loginAs("agent");
     cy.window().then((win) => {
       const token = win.sessionStorage.getItem("accessToken");
@@ -190,8 +193,8 @@ describe("Odobravanje i pregled naloga — #48–58", () => {
     });
   });
 
-  // #55: supervizor vidi sve potrebne kolone
-  it("#55: /orders prikazuje sve obavezne kolone", () => {
+  // #55: supervizor vidi sve potrebne kolone — UI on dropped /orders page
+  it.skip("#55: /orders prikazuje sve obavezne kolone", () => {
     cy.loginAs("supervisor");
     cy.visit("/orders");
     [
@@ -209,8 +212,8 @@ describe("Odobravanje i pregled naloga — #48–58", () => {
     });
   });
 
-  // #56: filter Pending
-  it("#56: filter Pending pokazuje samo pending ordere", () => {
+  // #56: filter Pending — UI on dropped /orders page
+  it.skip("#56: filter Pending pokazuje samo pending ordere", () => {
     cy.loginAs("supervisor");
     cy.visit("/orders");
     cy.get(".orders-filters select").select("pending");
@@ -219,8 +222,8 @@ describe("Odobravanje i pregled naloga — #48–58", () => {
     });
   });
 
-  // #57: filter Done
-  it("#57: filter Done pokazuje samo zavrsene ordere", () => {
+  // #57: filter Done — UI on dropped /orders page
+  it.skip("#57: filter Done pokazuje samo zavrsene ordere", () => {
     cy.loginAs("supervisor");
     cy.visit("/orders");
     cy.intercept("GET", "/api/orders?status=done*").as("doneList");
@@ -237,8 +240,8 @@ describe("Odobravanje i pregled naloga — #48–58", () => {
     });
   });
 
-  // #58: supervizor cancel-uje neispunjeni order
-  it("#58: cancel na approved order menja status (cancelled ili sl.)", () => {
+  // #58: supervizor cancel-uje approved order — UI on dropped /orders page
+  it.skip("#58: cancel na approved order menja status (cancelled ili sl.)", () => {
     cy.loginAs("agent");
     cy.findListingByTicker(TICKER).then((l) => {
       cy.createOrderApi({

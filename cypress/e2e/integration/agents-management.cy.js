@@ -2,7 +2,12 @@
 // Real-backend integration tests against ActuariesPage (/actuaries) and the
 // underlying /actuaries REST endpoints (handlers.go:94-97).
 
-describe("Upravljanje aktuarima — #1–9", () => {
+// TODO: realign for main's ActuaryManagementPage at /actuary-management.
+// This spec was written against this branch's now-dropped /actuaries page
+// (ActuariesPage with .act-* selectors). Main ships ActuaryManagementPage at
+// /actuary-management with .amp-* selectors and a different layout. Skipped
+// until the spec is rewritten against the team's component.
+describe.skip("Upravljanje aktuarima — #1–9", () => {
   // #1: Supervizor moze da otvori portal i vidi listu agenata + filtere + akcije
   it("#1: supervizor otvara /actuaries i vidi tabelu sa filterima i akcijama", () => {
     cy.loginAs("supervisor");

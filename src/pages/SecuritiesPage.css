@@ -6,6 +6,11 @@
 }
 
 .sec-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
     margin-bottom: 24px;
 }
 
@@ -15,6 +20,38 @@
     color: #f1f5f9;
     letter-spacing: -0.02em;
     margin: 0;
+}
+
+.sec-header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.sec-last-refresh {
+    color: #64748b;
+    font-size: 12px;
+}
+
+.sec-refresh-btn {
+    background: #1e3a5f;
+    border: 1px solid #3b82f6;
+    color: #93c5fd;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.sec-refresh-btn:hover:not([disabled]) {
+    background: #2563eb;
+    color: #fff;
+}
+
+.sec-refresh-btn[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 /* ── Tabs ── */

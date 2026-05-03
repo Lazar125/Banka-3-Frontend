@@ -44,6 +44,17 @@ export default defineConfig([
     },
   },
   {
+    // Cypress plugins run in Node (db-reset spins up `pg` and reads files via
+    // fs/process.env). Without node globals here ESLint flags `process` as
+    // undefined even though it's the standard Node runtime global.
+    files: ['cypress/plugins/**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+  {
     files: ['cypress.config.js'],
     languageOptions: {
       globals: {

@@ -89,6 +89,7 @@ const loadLoans = async () => {
 
   useEffect(() => {
     handleFilterChange();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterLoanType, filterAccountNumber, filterStatus]);
 
   const loanTypes = ["GOTOVINSKI", "STAMBENI", "AUTO", "REFINANSIRAJUCI", "STUDENTSKI"];

@@ -1,5 +1,6 @@
 import fs from "fs";
 import http from "http";
+import process from "process";
 import pg from "pg";
 
 const { Client } = pg;

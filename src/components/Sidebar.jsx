@@ -90,7 +90,7 @@ export default function MenuDropdown() {
                     items: [
                         { label: "Hartije od vrednosti", path: "/securities" },
                         { label: "Moj portfolio", path: "/portfolio" },
-                        { label: "Opcije", path: "/options" },
+                        { label: "Moji nalozi", path: "/orders/my" },
                     ],
                 }
             );
@@ -125,15 +125,21 @@ export default function MenuDropdown() {
                 });
             }
 
+            const tradingItems = [
+                { label: "Hartije od vrednosti", path: "/securities" },
+                { label: "Moj portfolio", path: "/portfolio" },
+                { label: "Moji nalozi", path: "/orders/my" },
+            ];
             sections.push({
                 title: "Trgovanje",
-                items: [{ label: "Hartije od vrednosti", path: "/securities" }],
+                items: tradingItems,
             });
 
             if (isSupervisor) {
                 sections.push({
                     title: "Supervizor",
                     items: [
+                        { label: "Pregled naloga", path: "/orders/review" },
                         { label: "Upravljanje aktuarima", path: "/actuary-management" },
                         { label: "Porez tracking", path: "/tax" },
                         { label: "Berze", path: "/berza" },

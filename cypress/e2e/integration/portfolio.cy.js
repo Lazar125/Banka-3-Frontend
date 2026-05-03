@@ -39,7 +39,11 @@ describe("Moj portfolio — #67–73", () => {
             headers: { Authorization: `Bearer ${token}` },
           });
         });
-        cy.waitForOrderStatus(orderId, "done", { timeoutMs: 60_000 });
+        // Backend scheduler ima 60s initial-delay pre nego što počne partial
+        // fill-ove (orders.execution.initial-delay-seconds=60). 60s budget
+        // nije dovoljan — scheduler tek startuje. 180s pokriva delay + N
+        // fill-ova za male qty (2 MSFT).
+        cy.waitForOrderStatus(orderId, "done", { timeoutMs: 180_000 });
       });
     });
   });

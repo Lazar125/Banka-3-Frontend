@@ -84,6 +84,6 @@ describe("Izmena klijenta", () => {
             },
         });
 
-        cy.url().should("include", "/employees");
+        cy.url().should("include", "/securities");
     });
 });

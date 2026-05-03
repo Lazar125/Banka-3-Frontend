@@ -58,7 +58,7 @@ describe("Kreiranje zaposlenog", () => {
   it("prikazuje sekciju sa permisijama", () => {
     cy.get(".permissions-section").should("exist");
     cy.get(".permissions-label").should("contain", "PERMISIJE");
-    cy.get(".permission-checkbox").should("have.length", 5);
+    cy.get(".permission-checkbox").should("have.length", 14);
   });
 
   it("permisije sadrze sve ocekivane opcije", () => {
@@ -67,7 +67,7 @@ describe("Kreiranje zaposlenog", () => {
       expect(texts).to.include("Admin");
       expect(texts).to.include("Trgovanje akcijama");
       expect(texts).to.include("Pregled akcija");
-      expect(texts).to.include("Upravljanje ugovorima");
+      expect(texts).to.include("Upravljanje zaposlenima");
       expect(texts).to.include("Upravljanje osiguranjima");
     });
   });
@@ -122,7 +122,7 @@ describe("Kreiranje zaposlenog", () => {
     cy.wait("@createEmployee");
     cy.wait("@findEmployee");
     cy.wait("@updatePermissions").its("request.body").should((body) => {
-      expect(body.permissions).to.deep.equal(["admin", "view_stocks"]);
+      expect(body.permissions).to.deep.equal(["admin", "manage_employees"]);
     });
     cy.get(".success-msg").should("contain", "Zaposleni uspešno kreiran");
   });

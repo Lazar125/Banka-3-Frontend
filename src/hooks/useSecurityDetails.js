@@ -10,41 +10,49 @@ export function useSecurityDetails(ticker) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    loadDetail();
+    let cancelled = false;
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const data = await getSecurityDetail(ticker);
+        if (cancelled) return;
+        setDetail(data);
+
+        if (data.type === "stock" && data.stockId) {
+          const optionsData = await getSecurityOptions(data.stockId);
+          if (!cancelled) setOptions(optionsData);
+        } else {
+          if (!cancelled) setOptions([]);
+        }
+      } catch (err) {
+        if (!cancelled) setError(err.message);
+        console.error(err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, [ticker]);
 
   useEffect(() => {
-    loadHistory();
-  }, [ticker, period]);
-
-  const loadDetail = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const data = await getSecurityDetail(ticker);
-      setDetail(data);
-      
-      if (data.type === "stock" || ticker.match(/^[A-Z]{1,5}$/)) {
-        const optionsData = await getSecurityOptions(ticker);
-        setOptions(optionsData);
-      }
-    } catch (err) {
-      setError(err.message);
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadHistory = async () => {
-    try {
-      const data = await getSecurityHistory(ticker, period);
-      setHistory(data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    if (!detail?.id) return;
+    let cancelled = false;
+    getSecurityHistory(detail.id, period)
+      .then((data) => {
+        if (!cancelled) setHistory(data);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [detail?.id, period]);
 
   return {
     detail,

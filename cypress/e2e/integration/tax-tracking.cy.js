@@ -34,8 +34,8 @@ describe("Porez tracking — #74–81", () => {
     cy.loginAs("supervisor");
     cy.intercept("GET", "**/api/tax/debts*").as("debts");
     cy.visit("/tax");
-    // React.StrictMode double-fires effects in dev → 2 initial loads.
-    cy.wait("@debts");
+    // Initial load (1 request in production build; StrictMode double-fires
+    // only in `vite dev`, but tests run against the nginx-served bundle).
     cy.wait("@debts");
     cy.get(".tax-filters select").select("Klijenti");
     cy.contains(".tax-filters button", "Pretraži").click();
@@ -55,8 +55,6 @@ describe("Porez tracking — #74–81", () => {
     cy.loginAs("supervisor");
     cy.intercept("GET", "**/api/tax/debts*").as("debts");
     cy.visit("/tax");
-    // React.StrictMode double-fires effects in dev → 2 initial loads.
-    cy.wait("@debts");
     cy.wait("@debts");
     cy.get(".tax-filters input[placeholder='Ime ili prezime']").type("Marko");
     cy.contains(".tax-filters button", "Pretraži").click();

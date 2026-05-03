@@ -36,7 +36,9 @@ import EditClientPage from "../pages/EditClientPage.jsx";
 import SecurityDetailPage from "../pages/SecurityDetailPage.jsx";
 import SecuritiesPage from "../pages/SecuritiesPage.jsx";
 import ActuaryManagementPage from "../pages/ActuaryManagementPage.jsx";
-import TradingPage from "../pages/TradingPage.jsx";
+import CreateOrderPage from "../pages/CreateOrderPage.jsx";
+import MyOrdersPage from "../pages/MyOrdersPage.jsx";
+import OrdersReviewPage from "../pages/OrdersReviewPage.jsx";
 
 export default function AppRouter() {
   return (
@@ -53,7 +55,11 @@ export default function AppRouter() {
           <Route path="/set-password" element={<ChangePasswordPage />} />
 
           <Route path="/dashboard" element={<ProtectedRoute requiredRole="client"><ClientDashboardPage /></ProtectedRoute>} />
-          <Route path="/options" element={<ProtectedRoute requiredRole="client"><TradingPage /></ProtectedRoute>} />
+          {/* Legacy /options route was a placeholder TradingPage that never wired
+              up to the spec'd flow. Spec p.45 says options live INSIDE the stock
+              detail page, so we redirect to /securities instead of shipping a
+              broken second entry-point. */}
+          <Route path="/options" element={<Navigate to="/securities" replace />} />
           <Route path="/accounts" element={<ProtectedRoute requiredRole="client"><AccountsPage /></ProtectedRoute>} />
           <Route path="/accounts/create" element={<ProtectedRoute requiredRole="employee"><CreateAccountPage /></ProtectedRoute>} />
           <Route path="/admin/accounts" element={<ProtectedRoute requiredRole="employee"><AccountsPage /></ProtectedRoute>} />
@@ -67,9 +73,18 @@ export default function AppRouter() {
           <Route path="/clients/edit/:id" element={<ProtectedRoute requiredRole="employee" requiredPermission="admin"><EditClientPage/></ProtectedRoute>}/>
           <Route path="/actuary-management" element={<ProtectedRoute requiredPermission="supervisor"><ActuaryManagementPage /></ProtectedRoute>} />
 
-        <Route path="/securities" element={<ProtectedRoute><SecuritiesPage /></ProtectedRoute>} />
-        <Route path="/securities/:ticker" element={<ProtectedRoute requiredRole="employee"><SecurityDetailPage /></ProtectedRoute>} />
-     
+          {/* Securities listing is open to clients and employees alike. The
+              detail page used to be employee-only, but the spec (p.45) lets
+              clients view and trade stocks/futures from this page — so the
+              detail view must be reachable from both roles. */}
+          <Route path="/securities" element={<ProtectedRoute><SecuritiesPage /></ProtectedRoute>} />
+          <Route path="/securities/:ticker" element={<ProtectedRoute><SecurityDetailPage /></ProtectedRoute>} />
+
+          {/* Order flow: create-on-form, my-history, supervisor review. */}
+          <Route path="/orders/new" element={<ProtectedRoute><CreateOrderPage /></ProtectedRoute>} />
+          <Route path="/orders/my" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
+          <Route path="/orders/review" element={<ProtectedRoute requiredPermission="supervisor"><OrdersReviewPage /></ProtectedRoute>} />
+
           <Route path="/employees/create" element={<ProtectedRoute requiredRole="employee" requiredPermission="admin"><CreateEmployeePage /></ProtectedRoute>}/>
           <Route path="/employees/edit/:id" element={<ProtectedRoute requiredRole="employee"><EditEmployeePage /></ProtectedRoute>} />
           <Route path="/employees/:id" element={<ProtectedRoute requiredRole="employee"><EmployeeDetailsPage /></ProtectedRoute>} />
@@ -90,7 +105,7 @@ export default function AppRouter() {
           <Route path="/loan-request" element={<ProtectedRoute requiredRole="client"><LoanApplicationPage /></ProtectedRoute>} />
           <Route path="/employee-loans" element={<ProtectedRoute requiredRole="employee"><EmployeeLoansPage /></ProtectedRoute>} />
           <Route path="/employee-loans-list" element={<ProtectedRoute requiredRole="employee"><EmployeeLoansListPage /></ProtectedRoute>} />
-          <Route path="/tax" element={<ProtectedRoute requiredRole="employee"><TaxDashboardPage /></ProtectedRoute>} />
+          <Route path="/tax" element={<ProtectedRoute requiredRole="employee" requiredPermission="supervisor"><TaxDashboardPage /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
   );

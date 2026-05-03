@@ -1,32 +1,123 @@
-import { useParams } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useSecurityDetails } from "../hooks/useSecurityDetails";
+import Sidebar from "../components/Sidebar.jsx";
 import SecurityChart from "../components/securities/SecurityChart";
 import SecurityHistoryTable from "../components/securities/SecurityHistoryTable";
 import OptionsTable from "../components/securities/OptionsTable";
 import "./SecurityDetailPage.css";
 
+const STRIKE_FILTERS = [
+  { value: "5", label: "5" },
+  { value: "10", label: "10" },
+  { value: "15", label: "15" },
+  { value: "all", label: "Sve" },
+];
+
+function isPastSettlement(value) {
+  if (!value) return false;
+  const ms = typeof value === "number" && value < 1e12 ? value * 1000 : Date.parse(value);
+  if (!Number.isFinite(ms)) return false;
+  return ms < Date.now();
+}
+
+function pickRowsAroundSharedPrice(rows, sharedPrice, count) {
+  if (!Array.isArray(rows) || rows.length === 0) return rows || [];
+  if (count === "all" || !count) return rows;
+  const n = Number(count);
+  if (!Number.isFinite(n) || n <= 0) return rows;
+  // Spec p.45: show `n` rows above and `n` rows below sharedPrice. We do that
+  // by sorting on strike, locating the boundary index, and slicing symmetric
+  // windows around it.
+  const sorted = [...rows].sort((a, b) => a.strike - b.strike);
+  let split = sorted.findIndex((r) => r.strike >= sharedPrice);
+  if (split === -1) split = sorted.length;
+  const above = sorted.slice(split, split + n);
+  const below = sorted.slice(Math.max(0, split - n), split);
+  return [...below, ...above];
+}
+
 function SecurityDetailPage() {
   const { ticker } = useParams();
-  const { detail, history, options, period, setPeriod, loading, error } = useSecurityDetails(ticker);
+  const navigate = useNavigate();
+  const { detail, history, options, period, setPeriod, loading, error } =
+    useSecurityDetails(ticker);
+
+  const role = sessionStorage.getItem("userRole") || "";
+  const isClient = role === "client";
+
+  const [selectedSettlement, setSelectedSettlement] = useState("");
+  const [strikeCount, setStrikeCount] = useState("10");
+
+  const expired = isPastSettlement(detail?.settlementDate);
+
+  const settlementDates = useMemo(() => {
+    return (options || []).map((s) => s.settlementDate);
+  }, [options]);
+
+  const visibleOptionSets = useMemo(() => {
+    if (!options || options.length === 0) return [];
+    const filtered = selectedSettlement
+      ? options.filter((s) => s.settlementDate === selectedSettlement)
+      : options;
+    if (!detail?.price) return filtered;
+    return filtered.map((s) => ({
+      ...s,
+      options: pickRowsAroundSharedPrice(s.options, detail.price, strikeCount),
+    }));
+  }, [options, selectedSettlement, strikeCount, detail]);
 
   if (loading) {
-    return <div style={{ padding: "20px", textAlign: "center" }}>⏳ Učitavanje...</div>;
+    return (
+      <div className="security-detail-page">
+        <Sidebar />
+        <div className="detail-container">
+          <p style={{ padding: "20px", textAlign: "center" }}>Učitavanje…</p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div style={{ padding: "20px", color: "red" }}>❌ Greška: {error}</div>;
+    return (
+      <div className="security-detail-page">
+        <Sidebar />
+        <div className="detail-container">
+          <p style={{ padding: "20px", color: "#fca5a5" }}>Greška: {error}</p>
+        </div>
+      </div>
+    );
   }
 
   if (!detail) {
-    return <div style={{ padding: "20px" }}>Hartija nije pronađena</div>;
+    return (
+      <div className="security-detail-page">
+        <Sidebar />
+        <div className="detail-container">
+          <p style={{ padding: "20px" }}>Hartija nije pronađena.</p>
+        </div>
+      </div>
+    );
+  }
+
+  function goCreateOrder(direction) {
+    const params = new URLSearchParams();
+    if (detail.id) params.set("listingId", detail.id);
+    if (detail.ticker) params.set("ticker", detail.ticker);
+    params.set("direction", direction);
+    navigate(`/orders/new?${params.toString()}`);
   }
 
   return (
     <div className="security-detail-page">
-      <div className="detail-container">
-        <div className="security-header">
+      <Sidebar />
+      <div className="detail-container sd-detail">
+        <div className="security-header sd-header">
+          <button className="sd-back-btn" onClick={() => navigate(-1)} aria-label="Nazad">
+            ←
+          </button>
           <div className="header-info">
-            <h1>{ticker}</h1>
+            <h1 className="sd-title">{detail.ticker}</h1>
             <p className="security-name">{detail.name}</p>
             <div className="header-stats">
               <div className="stat">
@@ -53,13 +144,73 @@ function SecurityDetailPage() {
               </div>
             </div>
           </div>
+          <div className="sd-actions">
+            <button
+              className="sd-buy-btn"
+              onClick={() => goCreateOrder("buy")}
+              disabled={expired}
+              title={expired ? "Ugovor je istekao" : "Otvori formu za kupovinu"}
+            >
+              Kupi {detail.ticker}
+            </button>
+            <button
+              className="sd-sell-btn"
+              onClick={() => goCreateOrder("sell")}
+              disabled={expired}
+              title={expired ? "Ugovor je istekao" : "Otvori formu za prodaju"}
+            >
+              Prodaj
+            </button>
+          </div>
         </div>
+
+        {expired && (
+          <div className="sd-banner sd-banner--warning">
+            Ugovor je istekao — kreiranje novog naloga je onemogućeno. Možete pregledati
+            istorijske podatke.
+          </div>
+        )}
 
         <SecurityChart data={history} period={period} setPeriod={setPeriod} />
 
         {history.length > 0 && <SecurityHistoryTable data={history} />}
 
-        {options.length > 0 && <OptionsTable options={options} sharedPrice={detail.price} />}
+        {options.length > 0 && !isClient && (
+          <div className="sd-options-section">
+            <div className="sd-options-controls">
+              <h3 className="sd-options-title">Lanac opcija</h3>
+              <div className="sd-options-filters">
+                <label>
+                  <span>Datum isteka:</span>
+                  <select
+                    value={selectedSettlement}
+                    onChange={(e) => setSelectedSettlement(e.target.value)}
+                  >
+                    <option value="">Svi datumi</option>
+                    {settlementDates.map((d) => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  <span>Broj strike vrednosti:</span>
+                  <select
+                    value={strikeCount}
+                    onChange={(e) => setStrikeCount(e.target.value)}
+                  >
+                    {STRIKE_FILTERS.map((f) => (
+                      <option key={f.value} value={f.value}>{f.label}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <p className="sd-shared-price">
+                Shared Price: <strong>${detail.price.toFixed(2)}</strong>
+              </p>
+            </div>
+            <OptionsTable options={visibleOptionSets} sharedPrice={detail.price} />
+          </div>
+        )}
       </div>
     </div>
   );

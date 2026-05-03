@@ -11,12 +11,25 @@ export default defineConfig({
   e2e: {
     baseUrl: process.env.CYPRESS_BASE_URL || "http://localhost:5173",
     setupNodeEvents(on) {
+      // Restart-list defaults to ["bank","gateway"] inside dbReset, but the
+      // Cypress runner inside cypress/included can't reach the Docker socket
+      // on Windows (named pipe vs unix socket). Empty list keeps the schema
+      // wipe + seed but skips the docker-restart step — services pick up the
+      // refreshed data on their next request.
+      const RESTART_CONTAINERS =
+        process.env.CYPRESS_RESTART_CONTAINERS != null
+          ? process.env.CYPRESS_RESTART_CONTAINERS
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
+          : [];
       on("task", {
         "db:reset": () =>
           dbReset({
             schemaPath: SCHEMA_PATH,
             seedPath: SEED_PATH,
             vars: { admin_email: ADMIN_EMAIL, client_email: CLIENT_EMAIL },
+            restartContainers: RESTART_CONTAINERS,
           }),
       });
     },

@@ -1,8 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar.jsx";
 import { getSecurities } from "../services/SecurityService.js";
 import "./SecuritiesPage.css";
+
+// Spec p.45: securities table auto-refreshes on a fixed interval. We split
+// the cadence so manual refresh is instant while background polling stays
+// quiet enough to not spam Alpha Vantage (rate limit 5 req/min).
+const AUTO_REFRESH_MS = 60_000;
 
 const ALL_TABS = [
     { key: "all",     label: "Sve" },
@@ -40,7 +45,9 @@ export default function SecuritiesPage() {
     // ── data ──
     const [securities, setSecurities] = useState([]);
     const [loading,    setLoading]    = useState(true);  // starts true — no data yet
+    const [refreshing, setRefreshing] = useState(false);
     const [error,      setError]      = useState(null);
+    const [lastRefresh, setLastRefresh] = useState(null);
 
     // ── tab ──
     const [activeTab, setActiveTab] = useState("all");
@@ -55,18 +62,55 @@ export default function SecuritiesPage() {
     const [priceMax,    setPriceMax]    = useState("");
     const [volumeMin,   setVolumeMin]   = useState("");
     const [volumeMax,   setVolumeMax]   = useState("");
+    const [settlementFrom, setSettlementFrom] = useState("");
+    const [settlementTo,   setSettlementTo]   = useState("");
 
     // ── sort ──
     const [sortBy,  setSortBy]  = useState(null);
     const [sortDir, setSortDir] = useState("asc");
 
+    const fetchData = useCallback(async ({ silent = false } = {}) => {
+        if (!silent) setRefreshing(true);
+        try {
+            const res = await getSecurities();
+            setSecurities(res.data);
+            setError(null);
+            setLastRefresh(res.timestamp || new Date().toLocaleString("sr-RS"));
+        } catch {
+            setError("Greška pri učitavanju hartija od vrednosti.");
+        } finally {
+            if (!silent) setRefreshing(false);
+            setLoading(false);
+        }
+    }, []);
+
     useEffect(() => {
         let cancelled = false;
-        getSecurities()
-            .then(res  => { if (!cancelled) setSecurities(res.data); })
-            .catch(()  => { if (!cancelled) setError("Greška pri učitavanju hartija od vrednosti."); })
-            .finally(() => { if (!cancelled) setLoading(false); });
+        const initial = async () => {
+            try {
+                const res = await getSecurities();
+                if (cancelled) return;
+                setSecurities(res.data);
+                setLastRefresh(res.timestamp || new Date().toLocaleString("sr-RS"));
+            } catch {
+                if (!cancelled) setError("Greška pri učitavanju hartija od vrednosti.");
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        };
+        initial();
         return () => { cancelled = true; };
+    }, []);
+
+    // Background poll — silent so we don't flash the loader. Cleared on
+    // unmount to avoid leaking timers on route changes.
+    const fetchRef = useRef(fetchData);
+    fetchRef.current = fetchData;
+    useEffect(() => {
+        const handle = setInterval(() => {
+            fetchRef.current({ silent: true });
+        }, AUTO_REFRESH_MS);
+        return () => clearInterval(handle);
     }, []);
 
     const uniqueExchanges = useMemo(() => {
@@ -79,10 +123,25 @@ export default function SecuritiesPage() {
     }, [securities, isClient, activeTab]);
 
     const activeFiltersCount = [
-        exchange, priceMin, priceMax, volumeMin, volumeMax
+        exchange, priceMin, priceMax, volumeMin, volumeMax,
+        settlementFrom, settlementTo,
     ].filter(Boolean).length;
 
+    const priceRangeError = (() => {
+        const lo = parseFloat(priceMin);
+        const hi = parseFloat(priceMax);
+        if (!Number.isNaN(lo) && !Number.isNaN(hi) && lo > hi) {
+            return "Minimalna cena ne može biti veća od maksimalne.";
+        }
+        return "";
+    })();
+
     const processed = useMemo(() => {
+        if (priceRangeError) return [];
+
+        const fromTs = settlementFrom ? Date.parse(settlementFrom) : null;
+        const toTs = settlementTo ? Date.parse(settlementTo) : null;
+
         let list = securities.filter(s => {
             if (isClient && s.type === "forex") return false;
             if (activeTab !== "all" && s.type !== activeTab) return false;
@@ -91,7 +150,7 @@ export default function SecuritiesPage() {
             if (q && !s.ticker.toLowerCase().includes(q) && !s.name.toLowerCase().includes(q))
                 return false;
 
-            if (exchange && s.exchange !== exchange) return false;
+            if (exchange && !s.exchange?.toUpperCase().startsWith(exchange.toUpperCase())) return false;
 
             const pMin = parseFloat(priceMin);
             const pMax = parseFloat(priceMax);
@@ -101,6 +160,17 @@ export default function SecuritiesPage() {
             if (!isNaN(pMax) && s.price > pMax) return false;
             if (!isNaN(vMin) && s.volume < vMin) return false;
             if (!isNaN(vMax) && s.volume > vMax) return false;
+
+            // Settlement-date filter only applies to assets that have one
+            // (futures and options); stocks/forex are exempt rather than
+            // hidden so toggling the filter doesn't emptily clear the table.
+            if ((fromTs || toTs) && s.settlementDate) {
+                const settled = Date.parse(s.settlementDate);
+                if (!Number.isNaN(settled)) {
+                    if (fromTs && settled < fromTs) return false;
+                    if (toTs && settled > toTs) return false;
+                }
+            }
 
             return true;
         });
@@ -114,7 +184,11 @@ export default function SecuritiesPage() {
         }
 
         return list;
-    }, [securities, isClient, activeTab, search, exchange, priceMin, priceMax, volumeMin, volumeMax, sortBy, sortDir]);
+    }, [
+        securities, isClient, activeTab, search, exchange, priceMin, priceMax,
+        volumeMin, volumeMax, settlementFrom, settlementTo, sortBy, sortDir,
+        priceRangeError,
+    ]);
 
     const handleSort = (field) => {
         if (sortBy === field) {
@@ -131,6 +205,8 @@ export default function SecuritiesPage() {
         setPriceMax("");
         setVolumeMin("");
         setVolumeMax("");
+        setSettlementFrom("");
+        setSettlementTo("");
     };
 
     const handleTabChange = (key) => {
@@ -145,6 +221,18 @@ export default function SecuritiesPage() {
 
             <div className="sec-header">
                 <h1 className="sec-title">Hartije od vrednosti</h1>
+                <div className="sec-header-actions">
+                    {lastRefresh && (
+                        <span className="sec-last-refresh">Poslednje osvežavanje: {lastRefresh}</span>
+                    )}
+                    <button
+                        className="sec-refresh-btn"
+                        onClick={() => fetchData()}
+                        disabled={refreshing}
+                    >
+                        {refreshing ? "Osvežavanje..." : "Osveži cene"}
+                    </button>
+                </div>
             </div>
 
             {/* ── TABS ── */}
@@ -199,17 +287,20 @@ export default function SecuritiesPage() {
                 <div className="sec-filters">
                     <div className="sec-filter-row">
                         <div className="sec-filter-field">
-                            <label className="sec-filter-label">Berza</label>
-                            <select
-                                className="sec-filter-select"
+                            <label className="sec-filter-label">Berza (prefiks)</label>
+                            <input
+                                className="sec-filter-input"
+                                type="text"
+                                placeholder="npr. NY"
                                 value={exchange}
                                 onChange={e => setExchange(e.target.value)}
-                            >
-                                <option value="">Sve berze</option>
+                                list="sec-exchange-options"
+                            />
+                            <datalist id="sec-exchange-options">
                                 {uniqueExchanges.map(ex => (
-                                    <option key={ex} value={ex}>{ex}</option>
+                                    <option key={ex} value={ex} />
                                 ))}
-                            </select>
+                            </datalist>
                         </div>
 
                         <div className="sec-filter-field">
@@ -266,6 +357,38 @@ export default function SecuritiesPage() {
                             </button>
                         )}
                     </div>
+
+                    {/* Spec p.45: settlement-date filter is required for futures
+                        (and useful for options). Stocks/forex carry no settlement
+                        date, so the filter is a no-op for them — see processed.filter. */}
+                    {(activeTab === "futures" || activeTab === "all") && (
+                        <div className="sec-filter-row">
+                            <div className="sec-filter-field">
+                                <label className="sec-filter-label">Datum isteka od</label>
+                                <input
+                                    className="sec-filter-input"
+                                    type="date"
+                                    value={settlementFrom}
+                                    onChange={e => setSettlementFrom(e.target.value)}
+                                />
+                            </div>
+                            <div className="sec-filter-field">
+                                <label className="sec-filter-label">Datum isteka do</label>
+                                <input
+                                    className="sec-filter-input"
+                                    type="date"
+                                    value={settlementTo}
+                                    onChange={e => setSettlementTo(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {priceRangeError && (
+                        <p className="sec-state sec-state--error" style={{ margin: "8px 0 0" }}>
+                            {priceRangeError}
+                        </p>
+                    )}
                 </div>
             )}
 
@@ -315,12 +438,17 @@ export default function SecuritiesPage() {
                         <tbody>
                             {processed.map(s => {
                                 const positive = s.change >= 0;
+                                // Spec p.45–46: clients may view stock and futures
+                                // detail (graf, podaci, kupi). Forex stays
+                                // employee-only — already filtered out of the
+                                // client view above.
+                                const clickable = s.type === "stock" || s.type === "futures" || (!isClient);
                                 return (
                                     <tr
                                         key={s.ticker}
-                                        className={!isClient ? "sec-row--clickable" : ""}
-                                        onClick={() => !isClient && navigate(`/securities/${s.ticker}`)}
-                                        title={!isClient ? `Otvori detalje za ${s.ticker}` : undefined}
+                                        className={clickable ? "sec-row--clickable" : ""}
+                                        onClick={() => clickable && navigate(`/securities/${s.ticker}`)}
+                                        title={clickable ? `Otvori detalje za ${s.ticker}` : undefined}
                                     >
                                         <td className="sec-ticker">{s.ticker}</td>
                                         <td className="sec-name">{s.name}</td>

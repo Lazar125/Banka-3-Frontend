@@ -100,3 +100,134 @@ h4 {
     gap: 10px;
   }
 }
+
+.sd-header {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  gap: 20px;
+  align-items: start;
+}
+
+.sd-back-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  color: #ffffff;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.sd-back-btn:hover {
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+.sd-actions {
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+}
+
+.sd-buy-btn,
+.sd-sell-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 22px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 160px;
+}
+
+.sd-buy-btn {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.sd-buy-btn:hover:not([disabled]) {
+  background: #1d4ed8;
+}
+
+.sd-sell-btn {
+  background: rgba(248, 113, 113, 0.16);
+  border: 1.5px solid rgba(248, 113, 113, 0.5);
+  color: #fca5a5;
+}
+
+.sd-sell-btn:hover:not([disabled]) {
+  background: rgba(248, 113, 113, 0.28);
+}
+
+.sd-buy-btn[disabled],
+.sd-sell-btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.sd-banner {
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin: 16px 0;
+  font-size: 0.95rem;
+  border: 1px solid transparent;
+}
+
+.sd-banner--warning {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.4);
+  color: #fcd34d;
+}
+
+.sd-options-section {
+  margin-top: 30px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sd-options-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 20px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.sd-options-title {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1.15rem;
+}
+
+.sd-options-filters {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.sd-options-filters label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.78rem;
+  color: #94a3b8;
+  gap: 4px;
+}
+
+.sd-options-filters select {
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 7px 10px;
+  color: #ffffff;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.sd-shared-price {
+  margin: 0 0 0 auto;
+  color: #cbd5f5;
+  font-size: 0.95rem;
+}

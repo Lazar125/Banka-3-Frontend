@@ -71,11 +71,38 @@ describe("Porez tracking — #74–81", () => {
     cy.wait("@debtsFiltered").its("request.url").should("include", "name=Marko");
   });
 
-  // #78: Automatski mesecni cron — RunTaxJob u tax/cron.go pokrece se mesecno.
-  // Nema HTTP endpoint-a za on-demand pokretanje cron-a; ručno pokretanje (#79)
-  // je jedini eksterni okidač iste logike obracuna.
-  it.skip("#78: automatski mesecni obračun (cron) — bez on-demand endpoint-a", () => {
-    // TODO: dodati POST /tax/cron/run da bi se cron mogao testirati direktno.
+  // #78: Automatski mesecni cron. RunMonthlyCapitalGainsCollection runs at
+  // 23:50 on the last calendar day; it's invoked here through the bank's
+  // debug HTTP listener (cron_debug.go). The cron entrypoint scopes to the
+  // current month; the seed's only unpaid period is 2026-04, so we use the
+  // debug endpoint's `?period=` override to target it without touching the
+  // shared seed.
+  it("#78: cron pokreće obračun i markira period=YYYY-MM kao plaćen", () => {
+    const debugBase =
+      Cypress.env("BANK_DEBUG_URL") || "http://localhost:50090";
+    const PERIOD = "2026-04";
+
+    // Pre-state: seed has at least one unpaid 2026-04 row.
+    cy.task("db:exec", {
+      sql: "SELECT COUNT(*)::int AS n FROM capital_gains WHERE period = $1 AND paid_at IS NULL",
+      params: [PERIOD],
+    }).then((res) => {
+      expect(res.rows[0].n, `unpaid rows for ${PERIOD} pre-cron`).to.be.greaterThan(0);
+    });
+
+    cy.request({
+      method: "POST",
+      url: `${debugBase}/debug/cron/capital-gains?period=${PERIOD}`,
+    })
+      .its("status")
+      .should("eq", 204);
+
+    cy.task("db:exec", {
+      sql: "SELECT COUNT(*)::int AS n FROM capital_gains WHERE period = $1 AND paid_at IS NULL",
+      params: [PERIOD],
+    }).then((res) => {
+      expect(res.rows[0].n, `unpaid rows for ${PERIOD} post-cron`).to.eq(0);
+    });
   });
 
   // #79: Rucno pokretanje obracuna preko TaxPage — POST /tax/run.

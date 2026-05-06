@@ -18,8 +18,8 @@
 // volume + a randomized delay. We assert remaining_portions monotonically
 // reaches 0, not exact chunk widths.
 //
-// DEO 12 (23:59 used_limit reset) is skipped — there's no HTTP trigger for
-// RunDailyUsedLimitReset on demand.
+// DEO 12 (23:59 used_limit reset) drives the cron through bank's debug HTTP
+// listener (cron_debug.go, env-gated by BANK_DEBUG_HTTP_PORT).
 
 const NASDAQ_MIC = "XNAS";
 const TICKER = "MSFT";
@@ -393,9 +393,34 @@ describe("E2E: Kompletan radni dan na berzi", () => {
   // -------------------------------------------------------------------------
   // DEO 12 — Automatski reset usedLimit-a u 23:59h
   // -------------------------------------------------------------------------
-  // Skipped: there's no HTTP trigger for RunDailyUsedLimitReset on demand.
-  // Cron at services/bank/internal/bank/cron.go fires at 23:59 server-local.
-  it.skip("DEO 12: automatski reset usedLimit-a u 23:59h", () => {
-    // TODO: enable once a manual trigger endpoint exists.
+  // The 23:59 cron (`RunDailyUsedLimitReset` in services/bank/internal/bank/
+  // cron.go) is invoked through the bank's debug HTTP listener. We bump the
+  // agent's used_limit explicitly rather than relying on DEO 1–11 to have
+  // left it non-zero — the trade flow may end at 0 depending on chunking.
+  it("DEO 12: automatski reset usedLimit-a u 23:59h", () => {
+    const debugBase =
+      Cypress.env("BANK_DEBUG_URL") || "http://localhost:50090";
+
+    cy.task("db:exec", {
+      sql: "UPDATE employees SET used_limit = 25000 WHERE id = $1",
+      params: [ctx.agentId],
+    }).then((res) => {
+      expect(res.rowCount, "agent row updated").to.be.greaterThan(0);
+    });
+
+    cy.request({
+      method: "POST",
+      url: `${debugBase}/debug/cron/used-limit-reset`,
+    })
+      .its("status")
+      .should("eq", 204);
+
+    cy.task("db:exec", {
+      sql: "SELECT used_limit FROM employees WHERE id = $1",
+      params: [ctx.agentId],
+    }).then((res) => {
+      // pg returns BIGINT as a string; coerce before numeric assert.
+      expect(Number(res.rows[0].used_limit), "used_limit post-cron").to.eq(0);
+    });
   });
 });

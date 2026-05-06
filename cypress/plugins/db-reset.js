@@ -93,3 +93,24 @@ export async function dbReset({
 
   return null;
 }
+
+// dbExec runs a parameterized SQL statement against the same database the
+// suite resets against, returning row count. Used by cron-trigger tests
+// that need to seed specific row state (e.g. used_limit > 0) without
+// running a full domain flow first.
+export async function dbExec({ sql, params = [] }) {
+  const client = new Client({
+    host: process.env.PG_HOST || "localhost",
+    port: Number(process.env.PG_PORT || 5432),
+    user: process.env.PG_USER || "banka",
+    password: process.env.PG_PASSWORD || "banka_secret",
+    database: process.env.PG_DB || "banka",
+  });
+  await client.connect();
+  try {
+    const res = await client.query(sql, params);
+    return { rowCount: res.rowCount ?? 0, rows: res.rows ?? [] };
+  } finally {
+    await client.end();
+  }
+}

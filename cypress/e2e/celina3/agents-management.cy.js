@@ -135,8 +135,38 @@ describe("Upravljanje aktuarima — #1–9", () => {
     });
   });
 
-  // #7: SKIPPED — see trading-day-e2e DEO 12 rationale.
-  it.skip("#7: automatski reset u 23:59h — bez admin trigger endpoint-a", () => {});
+  // #7: Automatski reset u 23:59h. The real cron lives at
+  // services/bank/internal/bank/cron.go (`RunDailyUsedLimitReset`); cypress
+  // can't wait until 23:59 wall-clock, so we drive it through the bank's
+  // debug HTTP listener (cron_debug.go, env-gated by BANK_DEBUG_HTTP_PORT).
+  // Pre-state: bump the agent's used_limit so the post-trigger 0 isn't
+  // trivially the same value.
+  it("#7: automatski reset u 23:59h zeruje used_limit svim aktuarima", () => {
+    const debugBase =
+      Cypress.env("BANK_DEBUG_URL") || "http://localhost:50090";
+
+    cy.task("db:exec", {
+      sql: "UPDATE employees SET used_limit = 50000 WHERE email = $1",
+      params: [AGENT_EMAIL],
+    }).then((res) => {
+      expect(res.rowCount, "agent row updated").to.be.greaterThan(0);
+    });
+
+    cy.request({
+      method: "POST",
+      url: `${debugBase}/debug/cron/used-limit-reset`,
+    })
+      .its("status")
+      .should("eq", 204);
+
+    cy.task("db:exec", {
+      sql: "SELECT used_limit FROM employees WHERE email = $1",
+      params: [AGENT_EMAIL],
+    }).then((res) => {
+      // pg returns BIGINT as a string; coerce before numeric assert.
+      expect(Number(res.rows[0].used_limit), "used_limit post-cron").to.eq(0);
+    });
+  });
 
   // #8: Admin je ujedno i supervizor — admin moze portal
   it("#8: admin moze da otvori portal (admin implies supervisor)", () => {

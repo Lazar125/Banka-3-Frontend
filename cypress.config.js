@@ -1,5 +1,5 @@
 import { defineConfig } from "cypress";
-import { dbReset } from "./cypress/plugins/db-reset.js";
+import { dbReset, dbExec } from "./cypress/plugins/db-reset.js";
 
 const SCHEMA_PATH =
   process.env.CYPRESS_SCHEMA_SQL || "/backend-sql/schema.sql";
@@ -31,6 +31,7 @@ export default defineConfig({
             vars: { admin_email: ADMIN_EMAIL, client_email: CLIENT_EMAIL },
             restartContainers: RESTART_CONTAINERS,
           }),
+        "db:exec": ({ sql, params }) => dbExec({ sql, params }),
       });
     },
     viewportWidth: 1280,

@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import Sidebar from "../components/Sidebar.jsx";
 import { getAccounts } from "../services/AccountService.js";
 import { getSecurityDetail } from "../services/SecurityDetailService.js";
+import { getExchanges } from "../services/ExchangeService.js";
 import {
   createOrder,
   toMinor,
@@ -10,6 +11,7 @@ import {
   ORDER_DIRECTION_LABEL,
 } from "../services/OrderService.js";
 import { formatCurrency } from "../utils/loanCalculations.js";
+import { computeExchangeStatus, findExchangeByAcronym } from "../utils/exchangeHours.js";
 import "./CreateOrderPage.css";
 
 const ORDER_TYPES = [
@@ -63,6 +65,7 @@ export default function CreateOrderPage() {
 
   const [security, setSecurity] = useState(null);
   const [accounts, setAccounts] = useState([]);
+  const [exchanges, setExchanges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
@@ -83,16 +86,19 @@ export default function CreateOrderPage() {
     let cancelled = false;
     (async () => {
       try {
-        // Resolve security (by ticker or listing id) and the user's accounts
-        // in parallel — both are needed before the form is interactive.
+        // Resolve security, the user's accounts, and the exchange list in
+        // parallel — all three are needed before the form is interactive
+        // (exchanges drive the closed-market warning, see §S45).
         const securityKey = tickerParam || listingIdParam;
-        const [sec, accs] = await Promise.all([
+        const [sec, accs, exs] = await Promise.all([
           securityKey ? getSecurityDetail(securityKey).catch(() => null) : Promise.resolve(null),
           getAccounts().catch(() => []),
+          getExchanges().catch(() => []),
         ]);
         if (cancelled) return;
         setSecurity(sec);
         setAccounts(Array.isArray(accs) ? accs : []);
+        setExchanges(Array.isArray(exs) ? exs : []);
         if (Array.isArray(accs) && accs.length > 0) {
           // Preselect first account that matches the security currency where
           // possible — keeps the displayed "Procena troškova" in a single
@@ -142,6 +148,18 @@ export default function CreateOrderPage() {
 
   const settlementExpired = isPastSettlement(security?.settlementDate);
 
+  // Spec §S45: warn before submit when the exchange is closed. Forex has no
+  // exchange and is always tradable; same for securities whose exchange we
+  // can't resolve (we don't want to false-positive a warning on missing data).
+  // Market orders are the harder case — the backend rejects them when the
+  // market is closed (see §S46), so we surface that as a hard block here too.
+  const exchangeStatus = useMemo(() => {
+    if (!security || security.type === "forex" || !security.exchange) return null;
+    const ex = findExchangeByAcronym(exchanges, security.exchange);
+    return ex ? computeExchangeStatus(ex) : null;
+  }, [security, exchanges]);
+  const exchangeClosed = exchangeStatus != null && !exchangeStatus.open;
+
   function validate() {
     const errs = {};
     const q = Number(quantity);
@@ -164,6 +182,13 @@ export default function CreateOrderPage() {
     }
     if (margin && !canMargin) {
       errs.margin = "Nemate dozvolu za margin trgovanje.";
+    }
+    // Block market orders pre-flight when the exchange is closed; the backend
+    // rejects them too (server.go: "exchange is closed; market orders cannot
+    // be placed"), so failing fast here saves a round-trip and tells the user
+    // why. Limit/stop variants are still allowed — they wait for a trigger.
+    if (orderType === "market" && exchangeClosed) {
+      errs.exchange = "Berza je zatvorena — Market nalozi se ne mogu kreirati. Koristite Limit/Stop ili sačekajte otvaranje.";
     }
     return errs;
   }
@@ -269,6 +294,14 @@ export default function CreateOrderPage() {
             Kreiranje naloga je onemogućeno.
           </div>
         )}
+        {exchangeClosed && (
+          <div className="co-banner co-banner--warning">
+            Berza {security?.exchange || ""} je trenutno zatvorena
+            ({exchangeStatus?.label || "zatvorena"}). Market nalozi će biti odbijeni;
+            Limit/Stop nalozi se mogu kreirati i čekaće okidač.
+          </div>
+        )}
+        {errors.exchange && <div className="co-banner co-banner--error">{errors.exchange}</div>}
         {isEmployee && (
           <div className="co-banner co-banner--info">
             Trguje se sa bankinog trading računa. Provizija za zaposlene je 0.

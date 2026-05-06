@@ -2,66 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getExchanges, setExchangeOpenOverride } from "../services/ExchangeService";
 import Sidebar from "../components/Sidebar.jsx";
+import { computeExchangeStatus } from "../utils/exchangeHours.js";
 import "./BerzaPage.css";
-
-// Spec p.40 says all exchanges in the same polity share working hours, so a
-// per-row local-time check is sufficient to compute "open"/"closed" without
-// hitting holiday calendars. The backend may also surface an is_open flag —
-// we prefer that when available so we don't drift from server state.
-function parseTimeOfDay(value) {
-  if (!value || typeof value !== "string") return null;
-  const [h, m = "0"] = value.split(":");
-  const hh = Number(h);
-  const mm = Number(m);
-  if (Number.isNaN(hh) || Number.isNaN(mm)) return null;
-  return hh * 60 + mm;
-}
-
-function parseUtcOffset(value) {
-  if (value == null) return 0;
-  if (typeof value === "number") return value;
-  const s = String(value).trim();
-  // Accepts forms like "+8", "-3", "+8:00", "+05:30".
-  const match = s.match(/^([+-]?)(\d{1,2})(?::?(\d{2}))?$/);
-  if (!match) return 0;
-  const sign = match[1] === "-" ? -1 : 1;
-  const h = Number(match[2]);
-  const m = Number(match[3] || 0);
-  return sign * (h + m / 60);
-}
-
-function computeStatus(ex) {
-  if (ex.open_override) {
-    return { open: true, label: "Otvorena (override)", className: "open" };
-  }
-  if (typeof ex.is_open === "boolean") {
-    return {
-      open: ex.is_open,
-      label: ex.is_open ? "Otvorena" : "Zatvorena",
-      className: ex.is_open ? "open" : "closed",
-    };
-  }
-  const openMin = parseTimeOfDay(ex.open_time);
-  const closeMin = parseTimeOfDay(ex.close_time);
-  if (openMin == null || closeMin == null) {
-    return { open: false, label: "Nepoznato", className: "unknown" };
-  }
-  const offsetH = parseUtcOffset(ex.time_zone_offset);
-  const now = new Date();
-  const localMs = now.getTime() + (now.getTimezoneOffset() + offsetH * 60) * 60000;
-  const localDate = new Date(localMs);
-  const day = localDate.getUTCDay(); // we already shifted to "exchange local"
-  if (day === 0 || day === 6) {
-    return { open: false, label: "Zatvorena (vikend)", className: "closed" };
-  }
-  const minutesNow = localDate.getUTCHours() * 60 + localDate.getUTCMinutes();
-  const isOpen = minutesNow >= openMin && minutesNow <= closeMin;
-  return {
-    open: isOpen,
-    label: isOpen ? "Otvorena" : "Zatvorena",
-    className: isOpen ? "open" : "closed",
-  };
-}
 
 export default function BerzaPage() {
   const navigate = useNavigate();
@@ -103,7 +45,7 @@ export default function BerzaPage() {
 
   const rows = useMemo(() => exchanges.map((ex) => ({
     ...ex,
-    status: computeStatus(ex),
+    status: computeExchangeStatus(ex),
   })), [exchanges]);
 
   const handleToggleOverride = async (exchange) => {

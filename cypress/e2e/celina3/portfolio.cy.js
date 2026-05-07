@@ -84,10 +84,46 @@ describe("Moj portfolio — #67–73", () => {
   });
 
   // #71: aktuar moze da iskoristi ITM put opciju.
-  // Hard to make deterministic — needs an existing put option holding, ITM.
-  // Skipped for stability; assertion logic is documented in PortfolioPage.jsx:117-132.
-  it.skip("#71: aktuar moze da iskoristi ITM put opciju", () => {
-    // TODO: requires a seeded option holding; out of scope for current seed.
+  // Seed (seed.sql, "Cypress portfolio #71" block) gives the agent a holding
+  // on MSFT_CY71_PUT_ITM (strike 63000, spot 42000, premium 1000, qty 5).
+  // Backend payout for a put = (strike − spot − premium) × qty in instrument
+  // currency; same-currency credit since the target is a USD account too:
+  //   (63000 − 42000 − 1000) × 5 = 100000 minor units USD.
+  // Payout target is marko's USD account, NOT BANK_USD_ACCOUNT — exercise
+  // debits the bank-stub system USD account (333000100000000420) for the
+  // payout, so crediting the same account would net zero.
+  it("#71: aktuar moze da iskoristi ITM put opciju", () => {
+    const PUT_TICKER = "MSFT_CY71_PUT_ITM";
+    const PAYOUT_ACCOUNT = "333000198765432120"; // marko's USD account
+    const EXPECTED_PAYOUT_USD = 100_000;
+
+    cy.loginAs("agent");
+
+    cy.task("db:exec", {
+      sql: "SELECT balance FROM accounts WHERE number = $1",
+      params: [PAYOUT_ACCOUNT],
+    }).then((res) => {
+      const balanceBefore = Number(res.rows[0].balance);
+
+      cy.visit("/portfolio");
+      cy.contains(".pf-table tr", PUT_TICKER, { timeout: 10_000 }).within(() => {
+        cy.get(".pf-exercise-btn").click();
+      });
+      cy.get(".pf-modal select").select(PAYOUT_ACCOUNT);
+      cy.get(".pf-modal").contains("button", "Iskoristi").click();
+
+      cy.contains(".pf-banner--ok", /uspe[sš]no iskori[sš][cć]ena/i, { timeout: 10_000 })
+        .should("exist");
+      cy.contains(".pf-table tr", PUT_TICKER).should("not.exist");
+
+      cy.task("db:exec", {
+        sql: "SELECT balance FROM accounts WHERE number = $1",
+        params: [PAYOUT_ACCOUNT],
+      }).then((after) => {
+        const delta = Number(after.rows[0].balance) - balanceBefore;
+        expect(delta, "USD account credited at strike not market").to.eq(EXPECTED_PAYOUT_USD);
+      });
+    });
   });
 
   // #72: klijent ne vidi opciju iskoriscavanja

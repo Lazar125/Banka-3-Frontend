@@ -7,13 +7,6 @@ import SecurityHistoryTable from "../components/securities/SecurityHistoryTable"
 import OptionsTable from "../components/securities/OptionsTable";
 import "./SecurityDetailPage.css";
 
-const STRIKE_FILTERS = [
-  { value: "5", label: "5" },
-  { value: "10", label: "10" },
-  { value: "15", label: "15" },
-  { value: "all", label: "Sve" },
-];
-
 function isPastSettlement(value) {
   if (!value) return false;
   const ms = typeof value === "number" && value < 1e12 ? value * 1000 : Date.parse(value);
@@ -142,6 +135,14 @@ function SecurityDetailPage() {
                 <span className="stat-label">Volume:</span>
                 <span className="stat-value">{(detail.volume / 1000000).toFixed(1)}M</span>
               </div>
+              {detail.settlementDate && (
+                <div className="stat">
+                  <span className="stat-label">Datum isteka:</span>
+                  <span className="stat-value">
+                    {new Date(detail.settlementDate).toLocaleDateString("sr-RS")}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
           <div className="sd-actions">
@@ -192,16 +193,29 @@ function SecurityDetailPage() {
                     ))}
                   </select>
                 </label>
-                <label>
-                  <span>Broj strike vrednosti:</span>
-                  <select
-                    value={strikeCount}
-                    onChange={(e) => setStrikeCount(e.target.value)}
-                  >
-                    {STRIKE_FILTERS.map((f) => (
-                      <option key={f.value} value={f.value}>{f.label}</option>
-                    ))}
-                  </select>
+                <label className="sd-strike-control">
+                  <span>Broj strike vrednosti (po strani):</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="50"
+                    step="1"
+                    value={strikeCount === "all" ? "" : strikeCount}
+                    placeholder="npr. 7"
+                    disabled={strikeCount === "all"}
+                    onChange={(e) => {
+                      const v = e.target.value.trim();
+                      setStrikeCount(v === "" ? "all" : v);
+                    }}
+                  />
+                  <label className="sd-strike-all">
+                    <input
+                      type="checkbox"
+                      checked={strikeCount === "all"}
+                      onChange={(e) => setStrikeCount(e.target.checked ? "all" : "10")}
+                    />
+                    <span>Sve</span>
+                  </label>
                 </label>
               </div>
               <p className="sd-shared-price">

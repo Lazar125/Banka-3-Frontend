@@ -118,6 +118,11 @@ export default function PortfolioPage() {
     }
     if (h.ticker) params.set("ticker", h.ticker);
     params.set("direction", "sell");
+    // Spec §S37: a SELL order can't exceed the placer's holding. Pass the
+    // current owned amount so CreateOrderPage caps the quantity input
+    // client-side; the backend re-validates at fill time, but failing fast
+    // beats waiting for the executor to reject.
+    if (h.amount != null) params.set("max", String(h.amount));
     navigate(`/orders/new?${params.toString()}`);
   }
 

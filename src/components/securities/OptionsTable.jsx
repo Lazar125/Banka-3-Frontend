@@ -1,157 +1,107 @@
+import "./OptionsTable.css";
+
+// CALLs are in-the-money when the strike sits below the underlying spot
+// (you can buy at strike and immediately sell at the higher spot). PUTs are
+// the mirror image — ITM when strike > spot. The colour pair (green ITM,
+// red OTM) mirrors the cheat-sheet legend rendered above the table so a
+// reader who doesn't remember the convention has it within glance distance
+// (review.md scenarios 21, 71).
+function classify(side, strike, sharedPrice) {
+  if (side === "call") {
+    if (strike < sharedPrice) return "itm";
+    if (strike > sharedPrice) return "otm";
+  } else {
+    if (strike > sharedPrice) return "itm";
+    if (strike < sharedPrice) return "otm";
+  }
+  return null; // ATM — neutral cell.
+}
+
+function cellClass(state) {
+  if (state === "itm") return "ot-cell ot-cell--itm";
+  if (state === "otm") return "ot-cell ot-cell--otm";
+  return "ot-cell";
+}
+
+function fmtMoney(value) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "—";
+  return `$${value.toFixed(2)}`;
+}
+
 function OptionsTable({ options, sharedPrice }) {
   if (!options || options.length === 0) {
     return null;
   }
 
   return (
-    <div style={{ marginBottom: "30px" }}>
-      <h3>Opcije</h3>
+    <div className="ot-wrap">
+      <h3 style={{ margin: "0 0 10px" }}>Opcije</h3>
+
+      <div className="ot-legend">
+        <span className="ot-legend-chip ot-legend-chip--itm">In-The-Money</span>
+        <span style={{ color: "#94a3b8" }}>strike povoljan u odnosu na trenutnu cenu</span>
+        <span style={{ flex: 1 }} />
+        <span className="ot-legend-chip ot-legend-chip--otm">Out-Of-The-Money</span>
+        <span style={{ color: "#94a3b8" }}>strike nepovoljan</span>
+        <span style={{ flex: 1 }} />
+        <span className="ot-legend-chip ot-legend-chip--shared">
+          Shared Price: {fmtMoney(sharedPrice)}
+        </span>
+      </div>
 
       {options.map((optionSet) => (
-        <div key={optionSet.settlementDate} style={{ marginBottom: "30px" }}>
-          <h4 style={{ marginBottom: "10px" }}>
+        <div key={optionSet.settlementDate} className="ot-set">
+          <h4 className="ot-set-header">
             📅 {optionSet.settlementDate} ({optionSet.daysToExpiry} dana)
           </h4>
 
-          <div style={{ overflowX: "auto" }}>
-            <table style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              background: "#fff",
-              fontSize: "12px",
-              border: "1px solid #ddd",
-            }}>
+          <div className="ot-scroll">
+            <table className="ot-table">
               <thead>
-                <tr style={{ background: "#f8f9fa" }}>
-                  <th colSpan="6" style={{ background: "#90ee90", padding: "8px", textAlign: "center", fontWeight: "bold" }}>
-                    CALLS
-                  </th>
-                  <th style={{ background: "#ddd", padding: "8px", textAlign: "center", fontWeight: "bold", width: "80px" }}>
-                    Strike
-                  </th>
-                  <th colSpan="6" style={{ background: "#ffb3b3", padding: "8px", textAlign: "center", fontWeight: "bold" }}>
-                    PUTS
-                  </th>
+                <tr className="ot-headline">
+                  <th colSpan="6" className="ot-headline-call">CALLS</th>
+                  <th className="ot-headline-strike">Strike</th>
+                  <th colSpan="6" className="ot-headline-put">PUTS</th>
                 </tr>
-                <tr style={{ background: "#f8f9fa", fontSize: "11px" }}>
-                  <th style={{ padding: "6px", borderRight: "1px solid #ddd" }}>Last</th>
-                  <th style={{ padding: "6px", borderRight: "1px solid #ddd" }}>Theta</th>
-                  <th style={{ padding: "6px", borderRight: "1px solid #ddd" }}>Bid</th>
-                  <th style={{ padding: "6px", borderRight: "1px solid #ddd" }}>Ask</th>
-                  <th style={{ padding: "6px", borderRight: "1px solid #ddd" }}>Vol</th>
-                  <th style={{ padding: "6px", borderRight: "1px solid #ddd" }}>OI</th>
-                  <th style={{ padding: "6px", borderRight: "1px solid #ddd" }}></th>
-                  <th style={{ padding: "6px", borderRight: "1px solid #ddd" }}>Last</th>
-                  <th style={{ padding: "6px", borderRight: "1px solid #ddd" }}>Theta</th>
-                  <th style={{ padding: "6px", borderRight: "1px solid #ddd" }}>Bid</th>
-                  <th style={{ padding: "6px", borderRight: "1px solid #ddd" }}>Ask</th>
-                  <th style={{ padding: "6px", borderRight: "1px solid #ddd" }}>Vol</th>
-                  <th style={{ padding: "6px" }}>OI</th>
+                <tr className="ot-subhead">
+                  <th>Last</th>
+                  <th>Theta</th>
+                  <th>Bid</th>
+                  <th>Ask</th>
+                  <th>Vol</th>
+                  <th>OI</th>
+                  <th></th>
+                  <th>Last</th>
+                  <th>Theta</th>
+                  <th>Bid</th>
+                  <th>Ask</th>
+                  <th>Vol</th>
+                  <th>OI</th>
                 </tr>
               </thead>
               <tbody>
                 {optionSet.options.map((option, idx) => {
-                  const isITM = option.strike < sharedPrice;
-                  const isOTM = option.strike > sharedPrice;
-                  
+                  const callState = classify("call", option.strike, sharedPrice);
+                  const putState = classify("put", option.strike, sharedPrice);
+                  const callCls = cellClass(callState);
+                  const putCls = cellClass(putState);
                   return (
-                    <tr key={idx} style={{ borderBottom: "1px solid #ddd" }}>
-                      <td style={{
-                        padding: "6px",
-                        textAlign: "center",
-                        background: isITM ? "#c8e6c9" : isOTM ? "#ffcccc" : "#fff",
-                      }}>
-                        {option.callLast.toFixed(2)}
-                      </td>
-                      <td style={{
-                        padding: "6px",
-                        textAlign: "center",
-                        background: isITM ? "#c8e6c9" : isOTM ? "#ffcccc" : "#fff",
-                      }}>
-                        {option.callTheta.toFixed(2)}
-                      </td>
-                      <td style={{
-                        padding: "6px",
-                        textAlign: "center",
-                        background: isITM ? "#c8e6c9" : isOTM ? "#ffcccc" : "#fff",
-                      }}>
-                        {option.callBid.toFixed(2)}
-                      </td>
-                      <td style={{
-                        padding: "6px",
-                        textAlign: "center",
-                        background: isITM ? "#c8e6c9" : isOTM ? "#ffcccc" : "#fff",
-                      }}>
-                        {option.callAsk.toFixed(2)}
-                      </td>
-                      <td style={{
-                        padding: "6px",
-                        textAlign: "center",
-                        background: isITM ? "#c8e6c9" : isOTM ? "#ffcccc" : "#fff",
-                      }}>
-                        {option.callVol}
-                      </td>
-                      <td style={{
-                        padding: "6px",
-                        textAlign: "center",
-                        background: isITM ? "#c8e6c9" : isOTM ? "#ffcccc" : "#fff",
-                        borderRight: "1px solid #ddd",
-                      }}>
-                        {option.callOI}
-                      </td>
-                      
-                      <td style={{
-                        padding: "6px",
-                        textAlign: "center",
-                        background: "#ffd700",
-                        fontWeight: "bold",
-                        borderRight: "1px solid #ddd",
-                      }}>
-                        ${option.strike}
-                      </td>
-                      
-                      <td style={{
-                        padding: "6px",
-                        textAlign: "center",
-                        background: isOTM ? "#c8e6c9" : isITM ? "#ffcccc" : "#fff",
-                      }}>
-                        {option.putLast.toFixed(2)}
-                      </td>
-                      <td style={{
-                        padding: "6px",
-                        textAlign: "center",
-                        background: isOTM ? "#c8e6c9" : isITM ? "#ffcccc" : "#fff",
-                      }}>
-                        {option.putTheta.toFixed(2)}
-                      </td>
-                      <td style={{
-                        padding: "6px",
-                        textAlign: "center",
-                        background: isOTM ? "#c8e6c9" : isITM ? "#ffcccc" : "#fff",
-                      }}>
-                        {option.putBid.toFixed(2)}
-                      </td>
-                      <td style={{
-                        padding: "6px",
-                        textAlign: "center",
-                        background: isOTM ? "#c8e6c9" : isITM ? "#ffcccc" : "#fff",
-                      }}>
-                        {option.putAsk.toFixed(2)}
-                      </td>
-                      <td style={{
-                        padding: "6px",
-                        textAlign: "center",
-                        background: isOTM ? "#c8e6c9" : isITM ? "#ffcccc" : "#fff",
-                      }}>
-                        {option.putVol}
-                      </td>
-                      <td style={{
-                        padding: "6px",
-                        textAlign: "center",
-                        background: isOTM ? "#c8e6c9" : isITM ? "#ffcccc" : "#fff",
-                      }}>
-                        {option.putOI}
-                      </td>
+                    <tr key={idx}>
+                      <td className={callCls}>{option.callLast.toFixed(2)}</td>
+                      <td className={callCls}>{option.callTheta.toFixed(2)}</td>
+                      <td className={callCls}>{option.callBid.toFixed(2)}</td>
+                      <td className={callCls}>{option.callAsk.toFixed(2)}</td>
+                      <td className={callCls}>{option.callVol}</td>
+                      <td className={callCls}>{option.callOI}</td>
+
+                      <td className="ot-cell ot-cell--strike">${option.strike}</td>
+
+                      <td className={putCls}>{option.putLast.toFixed(2)}</td>
+                      <td className={putCls}>{option.putTheta.toFixed(2)}</td>
+                      <td className={putCls}>{option.putBid.toFixed(2)}</td>
+                      <td className={putCls}>{option.putAsk.toFixed(2)}</td>
+                      <td className={putCls}>{option.putVol}</td>
+                      <td className={putCls}>{option.putOI}</td>
                     </tr>
                   );
                 })}

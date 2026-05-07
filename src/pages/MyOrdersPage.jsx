@@ -154,21 +154,41 @@ export default function MyOrdersPage() {
                   <tr key={o.id}>
                     <td>{o.id}</td>
                     <td>{o.ticker || o.listingName || "—"}</td>
-                    <td>{ORDER_TYPE_LABEL[o.orderType] || o.orderType}</td>
+                    <td>
+                      {ORDER_TYPE_LABEL[o.orderType] || o.orderType}
+                      {o.allOrNone && (
+                        <span className="mo-badge mo-badge--aon" title="All-Or-None: nalog se izvršava samo ako se može u potpunosti">
+                          AON
+                        </span>
+                      )}
+                    </td>
                     <td>
                       <span className={`mo-direction mo-direction--${o.direction}`}>
                         {ORDER_DIRECTION_LABEL[o.direction] || o.direction}
                       </span>
                     </td>
                     <td>{o.quantity}</td>
-                    <td>{formatCurrency(o.pricePerUnit, o.currency)}</td>
+                    <td>
+                      {o.orderType === "market" && (!o.pricePerUnit || o.pricePerUnit <= 0)
+                        ? <em className="mo-muted">tržišna</em>
+                        : formatCurrency(o.pricePerUnit, o.currency)}
+                    </td>
                     <td>{o.remainingPortions}</td>
                     <td>
                       {o.commission > 0
                         ? formatCurrency(o.commission, o.currency)
-                        : "—"}
+                        : (o.status === "pending" || o.status === "approved") && o.approxTotal
+                          ? <span className="mo-muted" title="Procena pre izvršenja">~ {formatCurrency(o.approxTotal * 0.0014, o.currency)}</span>
+                          : "—"}
                     </td>
-                    <td><span className={statusClass}>{ORDER_STATUS_LABEL[o.status] || o.status}</span></td>
+                    <td>
+                      <span
+                        className={statusClass}
+                        title={o.status === "pending" && o.pendingReason ? o.pendingReason : undefined}
+                      >
+                        {ORDER_STATUS_LABEL[o.status] || o.status}
+                      </span>
+                    </td>
                     <td>{o.approvedBy || (o.status === "approved" || o.status === "done" ? "Automatsko odobrenje" : "—")}</td>
                     <td>{fmtTimestamp(o.createdAt || o.lastModification)}</td>
                     <td>

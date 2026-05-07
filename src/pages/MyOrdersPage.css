@@ -243,3 +243,42 @@
   display: flex;
   gap: 6px;
 }
+
+.mo-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  vertical-align: middle;
+}
+
+.mo-badge--aon {
+  background: #fbbf24;
+  color: #1e293b;
+  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.4);
+}
+
+.mo-muted {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.mo-table-wrap {
+  overflow-x: auto;
+}
+
+.mo-table {
+  min-width: 1100px;
+}
+
+.mo-table th:first-child,
+.mo-table td:first-child {
+  position: sticky;
+  left: 0;
+  background: rgba(15, 23, 42, 0.95);
+  z-index: 1;
+}

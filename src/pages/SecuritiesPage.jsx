@@ -425,6 +425,7 @@ export default function SecuritiesPage() {
                                 >
                                     Volumen <SortIcon field="volume" sortBy={sortBy} sortDir={sortDir} />
                                 </th>
+                                <th>Datum isteka</th>
                                 <th>Berza</th>
                                 <th
                                     className="sec-th--sortable"
@@ -464,6 +465,11 @@ export default function SecuritiesPage() {
                                             {formatChange(s.change)}
                                         </td>
                                         <td className="sec-muted">{s.volume.toLocaleString("sr-RS")}</td>
+                                        <td className="sec-muted">
+                                            {s.settlementDate
+                                                ? new Date(s.settlementDate).toLocaleDateString("sr-RS")
+                                                : "—"}
+                                        </td>
                                         <td className="sec-muted">{s.exchange}</td>
                                         <td className="sec-muted">{fmt(s.maintenanceMargin)}</td>
                                     </tr>

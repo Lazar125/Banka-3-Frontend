@@ -61,6 +61,7 @@ export function mapOrder(o) {
     createdAt: tsOrNull(o.created_at ?? o.createdAt),
     lastModification: tsOrNull(o.last_modification ?? o.lastModification),
     settlementDate: tsOrNull(o.settlement_date ?? o.settlementDate),
+    pendingReason: o.pending_reason ?? o.pendingReason ?? "",
   };
 }
 

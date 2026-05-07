@@ -59,6 +59,14 @@ export default function CreateOrderPage() {
   const listingIdParam = params.get("listingId");
   const tickerParam = params.get("ticker") || "";
   const direction = (params.get("direction") || "buy").toLowerCase();
+  // Sell flow passes max=h.amount so this form caps quantity client-side;
+  // see PortfolioPage.navigateToSellOrder. parseFloat handles undefined and
+  // garbage gracefully (NaN → no cap applied).
+  const maxQuantity = (() => {
+    const raw = params.get("max");
+    const n = raw ? parseFloat(raw) : NaN;
+    return Number.isFinite(n) && n > 0 ? n : null;
+  })();
 
   const role = sessionStorage.getItem("userRole") || "";
   const permissions = useMemo(() => {
@@ -87,6 +95,11 @@ export default function CreateOrderPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  // errorModal surfaces backend rejections (NotFound listing, expired
+  // settlement, insufficient funds...) as a blocking dialog instead of a
+  // small banner — review.md §S32 flagged that the prior banner was easy
+  // to miss. Pre-flight validation messages still use submitError.
+  const [errorModal, setErrorModal] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -176,6 +189,8 @@ export default function CreateOrderPage() {
     const q = Number(quantity);
     if (!Number.isFinite(q) || q < 1) {
       errs.quantity = "Količina mora biti najmanje 1.";
+    } else if (maxQuantity != null && q > maxQuantity) {
+      errs.quantity = `Posedujete samo ${maxQuantity} jedinica — ne možete prodati više.`;
     }
     if (orderType === "limit" || orderType === "stop_limit") {
       const lp = Number(limitPrice);
@@ -257,7 +272,7 @@ export default function CreateOrderPage() {
         err.message;
       const msg = String(raw || "Greška pri kreiranju naloga.").trim();
       setShowConfirm(false);
-      setSubmitError(msg);
+      setErrorModal({ title: "Nalog odbijen", body: msg });
     } finally {
       setSubmitting(false);
     }
@@ -362,11 +377,14 @@ export default function CreateOrderPage() {
             </div>
 
             <label className="co-field">
-              <span className="co-field-label">Količina</span>
+              <span className="co-field-label">
+                Količina{maxQuantity != null ? ` (max ${maxQuantity})` : ""}
+              </span>
               <input
                 className={`co-input ${errors.quantity ? "co-input--error" : ""}`}
                 type="number"
                 min="1"
+                max={maxQuantity ?? undefined}
                 step="1"
                 value={quantity}
                 onChange={(e) => {
@@ -523,6 +541,20 @@ export default function CreateOrderPage() {
         </form>
       </div>
 
+      {errorModal && (
+        <div className="co-overlay" onClick={() => setErrorModal(null)}>
+          <div className="co-modal" onClick={(e) => e.stopPropagation()} role="alertdialog">
+            <h2 className="co-modal-error-title">{errorModal.title}</h2>
+            <p className="co-modal-error-body">{errorModal.body}</p>
+            <div className="co-modal-actions">
+              <button className="co-btn-primary" onClick={() => setErrorModal(null)} autoFocus>
+                U redu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showConfirm && (
         <div className="co-overlay" onClick={() => !submitting && setShowConfirm(false)}>
           <div className="co-modal" onClick={(e) => e.stopPropagation()}>
@@ -545,7 +577,14 @@ export default function CreateOrderPage() {
                 <div><dt>Stop</dt><dd>{formatCurrency(Number(stopPrice) || 0, securityCurrency)}</dd></div>
               )}
               <div><dt>Račun</dt><dd>{accountNumber || "—"}</dd></div>
-              <div><dt>All or None</dt><dd>{allOrNone ? "Da" : "Ne"}</dd></div>
+              <div>
+                <dt>All or None</dt>
+                <dd>
+                  {allOrNone
+                    ? <span className="co-aon-badge">AON</span>
+                    : "Ne"}
+                </dd>
+              </div>
               <div><dt>Margin</dt><dd>{margin ? "Da" : "Ne"}</dd></div>
               <div><dt>Aproks. ukupno</dt><dd>{formatCurrency(approxTotalMajor, securityCurrency)}</dd></div>
               <div><dt>Provizija</dt><dd>{isEmployee ? "0" : formatCurrency(commissionMajor, securityCurrency)}</dd></div>

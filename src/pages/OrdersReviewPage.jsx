@@ -167,7 +167,14 @@ export default function OrdersReviewPage() {
                   <tr key={o.id}>
                     <td>{o.id}</td>
                     <td>{o.userName || o.userEmail || `#${o.userId || "—"}`}</td>
-                    <td>{ORDER_TYPE_LABEL[o.orderType] || o.orderType}</td>
+                    <td>
+                      {ORDER_TYPE_LABEL[o.orderType] || o.orderType}
+                      {o.allOrNone && (
+                        <span className="mo-badge mo-badge--aon" title="All-Or-None: mora se izvršiti u celosti">
+                          AON
+                        </span>
+                      )}
+                    </td>
                     <td>{o.ticker || o.listingName || "—"}</td>
                     <td>
                       <span className={`mo-direction mo-direction--${o.direction}`}>
@@ -178,7 +185,14 @@ export default function OrdersReviewPage() {
                     <td>{o.contractSize}</td>
                     <td>{formatCurrency(o.pricePerUnit, o.currency)}</td>
                     <td>{o.remainingPortions}</td>
-                    <td><span className={`mo-status mo-status--${o.status}`}>{ORDER_STATUS_LABEL[o.status] || o.status}</span></td>
+                    <td>
+                      <span
+                        className={`mo-status mo-status--${o.status}`}
+                        title={o.status === "pending" && o.pendingReason ? o.pendingReason : undefined}
+                      >
+                        {ORDER_STATUS_LABEL[o.status] || o.status}
+                      </span>
+                    </td>
                     <td>{fmtTimestamp(o.createdAt || o.lastModification)}</td>
                     <td className="mo-actions-cell">
                       {canApprove && (

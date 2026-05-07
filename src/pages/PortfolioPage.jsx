@@ -45,15 +45,6 @@ function fmtTimestamp(unix) {
   }
 }
 
-function isInTheMoney(option, sharedPrice) {
-  if (!option || !sharedPrice) return false;
-  const strike = Number(option.strike_price ?? option.strike) || 0;
-  const type = (option.option_type ?? option.type ?? "").toLowerCase();
-  if (type === "call") return sharedPrice > strike;
-  if (type === "put") return sharedPrice < strike;
-  return false;
-}
-
 export default function PortfolioPage() {
   const navigate = useNavigate();
   const [holdings, setHoldings] = useState([]);
@@ -254,9 +245,6 @@ export default function PortfolioPage() {
                 const profitPct = avgMajor > 0 && Number(h.amount) > 0
                   ? (profit / 100) / (avgMajor * Number(h.amount)) * 100
                   : 0;
-                const optionItm = h.asset_type === "option"
-                  ? isInTheMoney(h, (Number(h.current_price) || 0) / 100)
-                  : false;
                 const exerciseExpired = h.asset_type === "option"
                   && h.settlement_date
                   && (h.settlement_date * 1000 < Date.now());
@@ -313,14 +301,13 @@ export default function PortfolioPage() {
                         </button>
                         {canShowExercise && (
                           <button
-                            className={`sell-btn pf-exercise-btn ${optionItm ? "" : "pf-btn--muted"}`}
+                            className="sell-btn pf-exercise-btn"
                             onClick={() =>
                               setExerciseModal({
                                 holding: h,
                                 account: h.account_number || "",
                               })
                             }
-                            title={optionItm ? "Iskoristi opciju (in-the-money)" : "Opcija nije in-the-money"}
                           >
                             Iskoristi opciju
                           </button>

@@ -119,18 +119,40 @@ describe("Porez tracking — #74–81", () => {
     cy.get(".tax-run-result").invoke("text").should("match", /RSD/);
   });
 
-  // #80: Konverzija u RSD za strane valute — provera da unpaid_rsd polje postoji
-  // u svakom redu i da je iskazano u RSD (formatMoney(_, "RSD")).
-  it("#80: svaki red prikazuje neplaćeni iznos u RSD-u", () => {
+  // #80: Konverzija u RSD bez provizije. Spec p.66 (Napomena 2): porez se
+  // konvertuje u RSD bez provizije. Verifikujemo:
+  //  (a) svaki red u tabeli prikazuje iznos u RSD,
+  //  (b) za svaki capital_gain red u DB, tax_due == 15% * realized_profit
+  //      (15% = capitalGainsTaxPermille / 1000 = 150/1000).
+  it("#80: neplaćeni iznosi su u RSD i odgovaraju 15% formuli bez provizije", () => {
     cy.loginAs("supervisor");
     cy.visit("/tax");
+
+    // (a) UI prikaz
     cy.get("body").then(($b) => {
-      if ($b.find(".tax-table tbody tr").length === 0) {
-        cy.log("Nema dugovanja za proveru — preskačemo strict assert.");
+      if ($b.find(".tax-table tbody tr").length > 0) {
+        cy.get(".tax-table tbody tr td.tax-neg").each(($td) => {
+          expect($td.text()).to.match(/RSD/);
+        });
+      }
+    });
+
+    // (b) Math invariant nad svakim postojecim capital_gain redom.
+    cy.task("db:exec", {
+      sql: "SELECT realized_profit, tax_due FROM capital_gains",
+    }).then((res) => {
+      const rows = res.rows || [];
+      if (rows.length === 0) {
+        cy.log("Nema capital_gains zapisa — math invariant nije primenljiv.");
         return;
       }
-      cy.get(".tax-table tbody tr td.tax-neg").each(($td) => {
-        expect($td.text()).to.match(/RSD/);
+      rows.forEach((r) => {
+        const profit = Number(r.realized_profit);
+        const tax = Number(r.tax_due);
+        // 15% bez provizije: tax = floor(profit * 150 / 1000) ili round —
+        // dozvoljavamo +-1 minor unit zbog integer aritmetike.
+        const expected = Math.floor(profit * 150 / 1000);
+        expect(Math.abs(tax - expected), `tax_due ≈ 15% × profit (profit=${profit})`).to.be.lte(1);
       });
     });
   });

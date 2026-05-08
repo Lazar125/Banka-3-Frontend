@@ -30,10 +30,9 @@ describe("Margin i AON nalozi — #63–66", () => {
     });
   });
 
-  // #64 / #65 — margin allowed: supervisor has margin_trading perm in seed.
-  // Distinguishing "credit > IMC" vs "balance > IMC" requires looking at the
-  // user's loans — too fragile to assert deterministically. We assert that the
-  // gateway accepts the call for a user who has the perm.
+  // #64 / #65 — margin dozvoljen: supervisor ima margin_trading + dovoljno
+  // sredstava (balance > IMC). Spec p.56: kada balance > IMC, margin=true
+  // mora biti prihvacen.
   it("#64-65: supervizor sa margin_trading permisijom moze margin=true", () => {
     cy.loginAs("supervisor");
     cy.findListingByTicker(TICKER).then((l) => {
@@ -45,9 +44,46 @@ describe("Margin i AON nalozi — #63–66", () => {
         listing_id: l.id,
         margin: true,
       }).then((r) => {
-        // Either accepted, or rejected for *business* reasons (no eligible loan,
-        // not enough balance for IMC). 5xx is the unacceptable case.
         expect(r.status).to.be.lessThan(500);
+      });
+    });
+  });
+
+  // #65b — IMC prag se zaista enforce-uje. Drainamo balance ispod IMC i
+  // ocekujemo 4xx (InvalidArgument: "margin eligibility failed").
+  // Posle vracamo balance.
+  it("#65b: balance ≤ IMC odbija margin (margin eligibility failed)", () => {
+    cy.loginAs("supervisor");
+    cy.task("db:exec", {
+      sql: "SELECT balance FROM accounts WHERE number = $1",
+      params: [BANK_USD_ACCOUNT],
+    }).then((res) => {
+      const saved = Number(res.rows[0].balance);
+
+      // initial_margin_cost za MSFT po listingu je ~23100 minor units ($231).
+      // Setujemo balance ispod toga.
+      cy.task("db:exec", {
+        sql: "UPDATE accounts SET balance = 100 WHERE number = $1", // $1.00
+        params: [BANK_USD_ACCOUNT],
+      });
+
+      cy.findListingByTicker(TICKER).then((l) => {
+        cy.createOrderApi({
+          account_number: BANK_USD_ACCOUNT,
+          order_type: "market",
+          direction: "buy",
+          quantity: 1,
+          listing_id: l.id,
+          margin: true,
+        }).then((r) => {
+          expect(r.status, "rejected for IMC failure").to.be.gte(400).and.lt(500);
+        });
+      });
+
+      // Restore.
+      cy.task("db:exec", {
+        sql: "UPDATE accounts SET balance = $1 WHERE number = $2",
+        params: [saved, BANK_USD_ACCOUNT],
       });
     });
   });

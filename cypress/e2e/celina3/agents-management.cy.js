@@ -91,27 +91,44 @@ describe("Upravljanje aktuarima — #1–9", () => {
   });
 
   // #5: Reset usedLimit kroz modal — modal/.amp-modal + "Potvrdi reset".
-  // Page disables the Reset button when usedLimit === 0, so when the seed
-  // leaves used_limit at 0 the modal path can't be exercised; we still
-  // assert the disabled state is correct.
+  // Spec §S5: agent ima usedLimit 45.000 RSD, supervizor klikne reset, modal
+  // se otvori, potvrdi se → usedLimit = 0. Seedujemo used_limit > 0 kroz
+  // db:exec da modal zaista bude relevantan (button je disabled kada je 0).
   it("#5: supervizor resetuje usedLimit i potvrdjuje u modalu", () => {
+    // Seed: bump used_limit tako da Reset dugme nije disabled.
+    cy.task("db:exec", {
+      sql: "UPDATE employees SET used_limit = 4500000 WHERE email = $1", // 45.000 RSD u minor jedinicama
+      params: [AGENT_EMAIL],
+    });
+
     cy.loginAs("supervisor");
     cy.visit(PAGE);
-    cy.contains(".amp-table tbody tr", AGENT_EMAIL).within(() => {
-      cy.get(".amp-btn-reset").as("resetBtn");
+
+    // Pre-stanje: tabela prikazuje 45.000.
+    cy.contains(".amp-table tbody tr", AGENT_EMAIL)
+      .find(".amp-used-val")
+      .should("contain", "45.000");
+
+    cy.contains(".amp-table tbody tr", AGENT_EMAIL)
+      .find(".amp-btn-reset")
+      .should("not.be.disabled")
+      .click();
+
+    cy.get(".amp-modal").should("be.visible").within(() => {
+      cy.contains("button", "Potvrdi reset").click();
     });
-    cy.get("@resetBtn").then(($btn) => {
-      if ($btn.is(":disabled")) {
-        cy.wrap($btn).should("be.disabled");
-        return;
-      }
-      cy.wrap($btn).click();
-      cy.get(".amp-modal").should("be.visible").within(() => {
-        cy.contains("button", "Potvrdi reset").click();
-      });
-      cy.contains(".amp-table tbody tr", AGENT_EMAIL)
-        .find(".amp-used-val")
-        .should("contain", "0");
+
+    // Post-stanje: tabela prikazuje 0.
+    cy.contains(".amp-table tbody tr", AGENT_EMAIL)
+      .find(".amp-used-val")
+      .should("contain", "0");
+
+    // I DB perzistira nulu.
+    cy.task("db:exec", {
+      sql: "SELECT used_limit FROM employees WHERE email = $1",
+      params: [AGENT_EMAIL],
+    }).then((res) => {
+      expect(Number(res.rows[0].used_limit)).to.eq(0);
     });
   });
 

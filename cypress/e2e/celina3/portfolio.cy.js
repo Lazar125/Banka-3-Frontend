@@ -58,29 +58,53 @@ describe("Moj portfolio — #67–73", () => {
     });
   });
 
-  // #68: ukupan profit je suma svih profita
-  it("#68: total profit je vidljiv u summary kartici", () => {
+  // #68: ukupan profit ima brojcanu vrednost (USD ili RSD format), a ne
+  // samo etiketu.
+  it("#68: total profit prikazuje formatirani novcani iznos", () => {
     cy.loginAs("agent");
     cy.visit("/portfolio");
     cy.get(".pf-summary").contains("Ukupan profit").should("exist");
-    cy.get(".pf-summary-value").first().invoke("text").should("not.be.empty");
+    cy.get(".pf-summary-value")
+      .first()
+      .invoke("text")
+      .should("match", /-?\d/); // bar jedna cifra (npr. "+0.00 USD" ili "−12.34 USD")
   });
 
-  // #69: porez sekcija — paid this year + unpaid this month
-  it("#69: portfolio prikazuje plaćen porez (godina) i neplaćen (mesec)", () => {
+  // #69: porez sekcija — i etikete i iznosi su u RSD formatu.
+  it("#69: portfolio prikazuje plaćen porez (godina) i neplaćen (mesec) u RSD-u", () => {
     cy.loginAs("agent");
     cy.visit("/portfolio");
-    cy.get(".pf-summary").should("contain", "Plaćen porez");
-    cy.get(".pf-summary").should("contain", "Neplaćen porez");
+    cy.contains(".pf-summary", "Plaćen porez")
+      .find(".pf-summary-value")
+      .invoke("text")
+      .should("match", /\d.*RSD/i);
+    cy.contains(".pf-summary", "Neplaćen porez")
+      .find(".pf-summary-value")
+      .invoke("text")
+      .should("match", /\d.*RSD/i);
   });
 
-  // #70: za akcije postoji opcija javnog rezima
-  it("#70: stock holding prikazuje Public dugme", () => {
+  // #70: za akcije postoji opcija javnog rezima — i klik kroz modal je
+  // funkcionalan, perzistira public_amount na backend strani.
+  it("#70: stock holding moze da se ucini javnim kroz modal", () => {
     cy.loginAs("agent");
     cy.visit("/portfolio");
+
     cy.contains(".pf-table tr", TICKER).within(() => {
-      cy.get(".pf-public-btn").should("exist");
+      cy.get(".pf-public-btn").should("exist").click();
     });
+
+    // Modal se otvori sa inputom i Sacuvaj dugmetom.
+    cy.get(".pf-modal").should("be.visible").within(() => {
+      cy.get(".pf-modal-input").clear().type("1");
+      cy.contains("button", "Sačuvaj").click();
+    });
+
+    // Backend perzistira public_amount=1, dugme prikazuje "Javno (1)".
+    cy.contains(".pf-table tr", TICKER, { timeout: 10_000 })
+      .find(".pf-public-btn")
+      .should("contain", "Javno")
+      .and("contain", "1");
   });
 
   // #71: aktuar moze da iskoristi ITM put opciju.

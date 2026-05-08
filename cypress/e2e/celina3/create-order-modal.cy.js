@@ -51,8 +51,56 @@ describe("Create Order modal — #33 #34 #45 #47", () => {
   });
 
   // ---------------------------------------------------------------------------
-  // #34 — Sprecavanje duplog slanja: vise klikova na "Pošalji nalog" pravi
-  // samo jedan POST /orders.
+  // #34a — Backend: isti Idempotency-Key dva puta vraca isti order_id, samo
+  // jedan red u DB. Ovo verifikuje pravu dedup tabelu (order_idempotency_keys),
+  // ne samo frontend `submitting` flag.
+  // ---------------------------------------------------------------------------
+  it("#34a: backend dedup-uje POST /orders po Idempotency-Key header-u", () => {
+    cy.findListingByTicker(TICKER).then((l) => {
+      const idemKey = `cypress-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const body = {
+        account_number: BANK_USD_ACCOUNT,
+        order_type: "market",
+        direction: "buy",
+        quantity: 1,
+        listing_id: l.id,
+        all_or_none: false,
+        margin: false,
+      };
+
+      cy.window().then((win) => {
+        const token = win.sessionStorage.getItem("accessToken");
+        const headers = {
+          Authorization: `Bearer ${token}`,
+          "Idempotency-Key": idemKey,
+        };
+
+        // Prvi poziv → kreira order.
+        cy.request({ method: "POST", url: "/api/orders", headers, body }).then((r1) => {
+          expect(r1.status).to.be.oneOf([200, 201]);
+          const firstId = r1.body.order_id;
+
+          // Drugi identican poziv sa istim Idempotency-Key → mora vratiti
+          // isti order_id (dedup short-circuit u trading/server.go:89-98).
+          cy.request({ method: "POST", url: "/api/orders", headers, body }).then((r2) => {
+            expect(r2.status).to.be.oneOf([200, 201]);
+            expect(r2.body.order_id, "isti order_id za isti idem-key").to.eq(firstId);
+          });
+
+          // U DB postoji tacno jedan red sa tim ključem.
+          cy.task("db:exec", {
+            sql: "SELECT COUNT(*)::int AS n FROM order_idempotency_keys WHERE key = $1",
+            params: [idemKey],
+          }).then((res) => {
+            expect(Number(res.rows[0].n), "samo jedan zapis u idem tabeli").to.eq(1);
+          });
+        });
+      });
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // #34 — Frontend: vise klikova na "Pošalji nalog" pravi samo jedan POST.
   // ---------------------------------------------------------------------------
   it("#34: vise klikova na potvrdu trigeruje samo jedan POST /orders", () => {
     cy.findListingByTicker(TICKER).then((l) => {

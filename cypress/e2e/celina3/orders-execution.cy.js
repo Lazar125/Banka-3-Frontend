@@ -139,9 +139,49 @@ describe("Izvršavanje naloga — #59–62", () => {
     });
   });
 
-  // #62 Stop-Limit prelazi u Limit pri trigger-u — bez vremenske kontrole tesko za testirati.
-  // Asertujemo property: stop_limit order moze biti kreiran, dobija status approved
-  // posle approve-a, i ne fill-uje se pre nego sto cena pogodi stop.
+  // #62b Stop-Limit prelazi u Limit pri trigger-u — pozitivni put.
+  // Spec p.55: Buy Stop-Limit sa Stop=X, Limit=Y se pretvara u Buy Limit
+  // (Y) cim ask >= X. Postavljamo stop ispod ask-a → trigger odmah; limit
+  // iznad ask-a → fill se desi.
+  it("#62b: stop-limit BUY se aktivira i fill-uje kada je ask >= stop", () => {
+    cy.loginAs("agent");
+    cy.findListingByTicker(TICKER).then((l) => {
+      // l.price/ask su u minor jedinicama. Stop ispod ask → trigger.
+      // Limit dovoljno iznad ask → ask <= limit → fill.
+      const stop = Math.max(1, Math.floor((l.ask_price ?? l.price) * 0.5));
+      const limit = Math.floor((l.ask_price ?? l.price) * 1.5);
+      cy.createOrderApi({
+        account_number: BANK_USD_ACCOUNT,
+        order_type: "stop_limit",
+        direction: "buy",
+        quantity: 1,
+        listing_id: l.id,
+        stop_price: stop,
+        limit_price: limit,
+      }).then((r) => {
+        expect(r.status).to.be.oneOf([200, 201]);
+        const orderId = r.body.order_id;
+
+        cy.loginAs("supervisor");
+        cy.window().then((win) => {
+          const token = win.sessionStorage.getItem("accessToken");
+          cy.request({
+            method: "POST",
+            url: `/api/orders/${orderId}/approve`,
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        });
+
+        // Trigger uslov je ispunjen odmah (ask >= stop), executor aktivira
+        // i potom radi kao Limit. waitForOrderStatus pokriva oba koraka.
+        cy.waitForOrderStatus(orderId, "done", { timeoutMs: 90_000 }).then((o) => {
+          expect(o.remaining_portions, "fully filled posle trigger-a").to.eq(0);
+        });
+      });
+    });
+  });
+
+  // #62 Stop-Limit ne fill-uje se pre trigger-a — kontrolna grupa.
   it("#62: stop-limit BUY ne fill-uje se pre stop-trigger-a", () => {
     cy.loginAs("agent");
     cy.findListingByTicker(TICKER).then((l) => {

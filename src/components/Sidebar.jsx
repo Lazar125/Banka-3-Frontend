@@ -90,6 +90,7 @@ export default function MenuDropdown() {
                     items: [
                         { label: "Hartije od vrednosti", path: "/securities" },
                         { label: "Moj portfolio", path: "/portfolio" },
+                        { label: "Opcioni ugovori", path: "/option-contracts" },
                         { label: "Moji nalozi", path: "/orders/my" },
                     ],
                 }
@@ -128,6 +129,7 @@ export default function MenuDropdown() {
             const tradingItems = [
                 { label: "Hartije od vrednosti", path: "/securities" },
                 { label: "Moj portfolio", path: "/portfolio" },
+                { label: "Opcioni ugovori", path: "/option-contracts" },
                 { label: "Moji nalozi", path: "/orders/my" },
             ];
             sections.push({

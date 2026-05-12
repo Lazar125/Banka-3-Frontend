@@ -39,6 +39,7 @@ import ActuaryManagementPage from "../pages/ActuaryManagementPage.jsx";
 import CreateOrderPage from "../pages/CreateOrderPage.jsx";
 import MyOrdersPage from "../pages/MyOrdersPage.jsx";
 import OrdersReviewPage from "../pages/OrdersReviewPage.jsx";
+import OptionContractsPage from "../pages/OptionContractsPage.jsx";
 
 export default function AppRouter() {
   return (
@@ -83,6 +84,7 @@ export default function AppRouter() {
           {/* Order flow: create-on-form, my-history, supervisor review. */}
           <Route path="/orders/new" element={<ProtectedRoute><CreateOrderPage /></ProtectedRoute>} />
           <Route path="/orders/my" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
+          <Route path="/option-contracts" element={<ProtectedRoute><OptionContractsPage /></ProtectedRoute>} />
           <Route path="/orders/review" element={<ProtectedRoute requiredPermission="supervisor"><OrdersReviewPage /></ProtectedRoute>} />
 
           <Route path="/employees/create" element={<ProtectedRoute requiredRole="employee" requiredPermission="admin"><CreateEmployeePage /></ProtectedRoute>}/>

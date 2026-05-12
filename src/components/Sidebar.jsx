@@ -143,6 +143,7 @@ export default function MenuDropdown() {
                         { label: "Upravljanje aktuarima", path: "/actuary-management" },
                         { label: "Porez tracking", path: "/tax" },
                         { label: "Berze", path: "/berza" },
+                        { label: "Investicioni fondovi", path: "/investment-funds/1" },
                     ],
                 });
             }

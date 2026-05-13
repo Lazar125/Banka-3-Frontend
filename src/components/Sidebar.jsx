@@ -152,11 +152,7 @@ export default function MenuDropdown() {
                         { label: "Profit Banke — aktuari", path: "/profit/actuaries" },
                         { label: "Porez tracking", path: "/tax" },
                         { label: "Berze", path: "/berza" },
-<<<<<<< #225-investment-fund-detail-page
                         { label: "Investicioni fondovi", path: "/investment-funds/1" },
-=======
-                        { label: "Investicioni fondovi", path: "/investment-funds/create" },
->>>>>>> main
                     ],
                 });
             }

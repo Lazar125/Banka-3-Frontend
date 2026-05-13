@@ -86,6 +86,12 @@ export default function MenuDropdown() {
                     ],
                 },
                 {
+                    title: "Investicioni Fondovi",
+                    items: [
+                        { label: "Pregled fondova", path: "/fondovi" },
+                    ],
+                },
+                {
                     title: "Trgovanje",
                     items: [
                         { label: "Hartije od vrednosti", path: "/securities" },

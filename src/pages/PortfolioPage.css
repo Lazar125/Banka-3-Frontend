@@ -187,4 +187,55 @@
         padding: 6px 14px;
         font-size: 12px;
     }
+}.portfolio-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.portfolio-tab {
+    border: 1px solid rgba(255,255,255,0.08);
+    background: #111827;
+    color: #94a3b8;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.portfolio-tab:hover {
+    background: #1e293b;
+    color: #f1f5f9;
+}
+
+.portfolio-tab.active {
+    background: linear-gradient(145deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border-color: #2563eb;
+}
+
+.portfolio-clickable-row {
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.portfolio-clickable-row:hover {
+    background: rgba(59, 130, 246, 0.08) !important;
+}
+
+.fund-name {
+    font-weight: 700;
+    color: #f1f5f9;
+}
+
+.fund-description {
+    color: #94a3b8;
+    max-width: 340px;
+}
+
+.fund-liquidity {
+    color: #34d399;
+    font-weight: 700;
 }

@@ -86,10 +86,17 @@ export default function MenuDropdown() {
                     ],
                 },
                 {
+                    title: "Investicioni Fondovi",
+                    items: [
+                        { label: "Pregled fondova", path: "/fondovi" },
+                    ],
+                },
+                {
                     title: "Trgovanje",
                     items: [
                         { label: "Hartije od vrednosti", path: "/securities" },
                         { label: "Moj portfolio", path: "/portfolio" },
+                        { label: "Opcioni ugovori", path: "/option-contracts" },
                         { label: "Moji nalozi", path: "/orders/my" },
                     ],
                 }
@@ -128,6 +135,7 @@ export default function MenuDropdown() {
             const tradingItems = [
                 { label: "Hartije od vrednosti", path: "/securities" },
                 { label: "Moj portfolio", path: "/portfolio" },
+                { label: "Opcioni ugovori", path: "/option-contracts" },
                 { label: "Moji nalozi", path: "/orders/my" },
             ];
             sections.push({
@@ -141,9 +149,14 @@ export default function MenuDropdown() {
                     items: [
                         { label: "Pregled naloga", path: "/orders/review" },
                         { label: "Upravljanje aktuarima", path: "/actuary-management" },
+                        { label: "Profit Banke — aktuari", path: "/profit/actuaries" },
                         { label: "Porez tracking", path: "/tax" },
                         { label: "Berze", path: "/berza" },
+<<<<<<< #225-investment-fund-detail-page
                         { label: "Investicioni fondovi", path: "/investment-funds/1" },
+=======
+                        { label: "Investicioni fondovi", path: "/investment-funds/create" },
+>>>>>>> main
                     ],
                 });
             }

@@ -10,6 +10,7 @@ import {
   ORDER_TYPE_LABEL,
   ORDER_DIRECTION_LABEL,
 } from "../services/OrderService.js";
+import { getFondovi } from "../services/FondoviService.js";
 import { formatCurrency } from "../utils/loanCalculations.js";
 import { computeExchangeStatus, findExchangeByAcronym } from "../utils/exchangeHours.js";
 import "./CreateOrderPage.css";
@@ -92,6 +93,10 @@ export default function CreateOrderPage() {
   const [margin, setMargin] = useState(false);
   const [errors, setErrors] = useState({});
 
+  const [buyFor, setBuyFor] = useState("banka");
+  const [fondovi, setFondovi] = useState([]);
+  const [selectedFondId, setSelectedFondId] = useState("");
+
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -122,15 +127,17 @@ export default function CreateOrderPage() {
         // Clients keep their own accounts here; admins follow the employee
         // path because they're seated as employees in this codebase.
         const accountsLoader = role === "employee" ? getTradingAccounts : getAccounts;
-        const [sec, accs, exs] = await Promise.all([
+        const [sec, accs, exs, fonds] = await Promise.all([
           securityKey ? getSecurityDetail(securityKey).catch(() => null) : Promise.resolve(null),
           accountsLoader().catch(() => []),
           getExchanges().catch(() => []),
+          getFondovi().catch(() => []),
         ]);
         if (cancelled) return;
         setSecurity(sec);
         setAccounts(Array.isArray(accs) ? accs : []);
         setExchanges(Array.isArray(exs) ? exs : []);
+        setFondovi(Array.isArray(fonds) ? fonds : []);
         if (Array.isArray(accs) && accs.length > 0) {
           // Preselect first account that matches the security currency where
           // possible — keeps the displayed "Procena troškova" in a single
@@ -211,7 +218,9 @@ export default function CreateOrderPage() {
       const sp = Number(stopPrice);
       if (!Number.isFinite(sp) || sp <= 0) errs.stopPrice = "Stop cena mora biti veća od 0.";
     }
-    if (!accountNumber) {
+    if (direction === "buy" && buyFor === "fond") {
+      if (!selectedFondId) errs.selectedFondId = "Izaberite investicioni fond.";
+    } else if (!accountNumber) {
       errs.accountNumber = "Izaberite račun za naplatu.";
     }
     if (settlementExpired) {
@@ -263,7 +272,11 @@ export default function CreateOrderPage() {
       } else if (assetId != null) {
         payload.listing_id = assetId;
       }
-      if (accountNumber) payload.account_number = accountNumber;
+      if (direction === "buy" && buyFor === "fond" && selectedFondId) {
+        payload.fund_id = Number(selectedFondId);
+      } else if (accountNumber) {
+        payload.account_number = accountNumber;
+      }
       if (orderType === "limit" || orderType === "stop_limit") {
         payload.limit_price = toMinor(limitPrice);
       }
@@ -450,36 +463,99 @@ export default function CreateOrderPage() {
             </label>
           </div>
 
-          <div className="co-row">
-            <label className="co-field">
-              <span className="co-field-label">
-                {isEmployee ? "Bankin trading račun" : "Račun za naplatu"}
-              </span>
-              <select
-                className={`co-input ${errors.accountNumber ? "co-input--error" : ""}`}
-                value={accountNumber}
-                onChange={(e) => {
-                  setAccountNumber(e.target.value);
-                  if (errors.accountNumber) setErrors((p) => ({ ...p, accountNumber: "" }));
-                }}
-              >
-                <option value="">— Izaberite račun —</option>
-                {accounts.map((a) => (
-                  <option key={a.account_number} value={a.account_number}>
-                    {a.account_number} · {a.currency}
-                    {typeof a.balance === "number" ? ` · ${a.balance.toLocaleString("sr-RS")}` : ""}
-                  </option>
-                ))}
-              </select>
-              {errors.accountNumber && <span className="co-error">{errors.accountNumber}</span>}
-              {accounts.length === 0 && (
-                <span className="co-hint">
-                  Nema dostupnih računa za prikaz. Backend će pokušati da resolvuje
-                  bankin trading račun po valuti hartije.
+          {direction === "buy" && (
+            <div className="co-row">
+              <div className="co-field">
+                <span className="co-field-label">Kupovina za</span>
+                <div className="co-radio-group">
+                  <label className="co-radio-label">
+                    <input
+                      type="radio"
+                      name="buyFor"
+                      value="banka"
+                      checked={buyFor === "banka"}
+                      onChange={() => {
+                        setBuyFor("banka");
+                        setSelectedFondId("");
+                        if (errors.selectedFondId) setErrors((p) => ({ ...p, selectedFondId: "" }));
+                      }}
+                    />
+                    Banku (račun)
+                  </label>
+                  <label className="co-radio-label">
+                    <input
+                      type="radio"
+                      name="buyFor"
+                      value="fond"
+                      checked={buyFor === "fond"}
+                      onChange={() => {
+                        setBuyFor("fond");
+                        if (errors.accountNumber) setErrors((p) => ({ ...p, accountNumber: "" }));
+                      }}
+                    />
+                    Investicioni fond
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(direction !== "buy" || buyFor === "banka") && (
+            <div className="co-row">
+              <label className="co-field">
+                <span className="co-field-label">
+                  {isEmployee ? "Bankin trading račun" : "Račun za naplatu"}
                 </span>
-              )}
-            </label>
-          </div>
+                <select
+                  className={`co-input ${errors.accountNumber ? "co-input--error" : ""}`}
+                  value={accountNumber}
+                  onChange={(e) => {
+                    setAccountNumber(e.target.value);
+                    if (errors.accountNumber) setErrors((p) => ({ ...p, accountNumber: "" }));
+                  }}
+                >
+                  <option value="">— Izaberite račun —</option>
+                  {accounts.map((a) => (
+                    <option key={a.account_number} value={a.account_number}>
+                      {a.account_number} · {a.currency}
+                      {typeof a.balance === "number" ? ` · ${a.balance.toLocaleString("sr-RS")}` : ""}
+                    </option>
+                  ))}
+                </select>
+                {errors.accountNumber && <span className="co-error">{errors.accountNumber}</span>}
+                {accounts.length === 0 && (
+                  <span className="co-hint">
+                    Nema dostupnih računa za prikaz. Backend će pokušati da resolvuje
+                    bankin trading račun po valuti hartije.
+                  </span>
+                )}
+              </label>
+            </div>
+          )}
+
+          {direction === "buy" && buyFor === "fond" && (
+            <div className="co-row">
+              <label className="co-field">
+                <span className="co-field-label">Investicioni fond</span>
+                <select
+                  className={`co-input ${errors.selectedFondId ? "co-input--error" : ""}`}
+                  value={selectedFondId}
+                  onChange={(e) => {
+                    setSelectedFondId(e.target.value);
+                    if (errors.selectedFondId) setErrors((p) => ({ ...p, selectedFondId: "" }));
+                  }}
+                >
+                  <option value="">— Izaberite fond —</option>
+                  {fondovi.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.naziv}
+                    </option>
+                  ))}
+                </select>
+                {errors.selectedFondId && <span className="co-error">{errors.selectedFondId}</span>}
+              </label>
+            </div>
+          )}
 
           <div className="co-row co-row--checks">
             <label className="co-check">
@@ -595,7 +671,11 @@ export default function CreateOrderPage() {
               {showStopField && (
                 <div><dt>Stop</dt><dd>{formatCurrency(Number(stopPrice) || 0, securityCurrency)}</dd></div>
               )}
-              <div><dt>Račun</dt><dd>{accountNumber || "—"}</dd></div>
+              {direction === "buy" && buyFor === "fond" ? (
+                <div><dt>Fond</dt><dd>{fondovi.find((f) => String(f.id) === String(selectedFondId))?.naziv || selectedFondId || "—"}</dd></div>
+              ) : (
+                <div><dt>Račun</dt><dd>{accountNumber || "—"}</dd></div>
+              )}
               <div>
                 <dt>All or None</dt>
                 <dd>

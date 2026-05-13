@@ -1,4 +1,3 @@
-<<<<<<< #225-investment-fund-detail-page
 const USE_MOCK = true;
 
 const mockDelay = (ms = 900) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -67,12 +66,6 @@ export const getInvestmentFundById = async (id) => {
   // return response.data;
 };
 
-=======
-
-const USE_MOCK = true;
-
-const mockDelay = (ms = 1200) => new Promise((resolve) => setTimeout(resolve, ms));
-
 export const createInvestmentFund = async (data) => {
   if (USE_MOCK) {
     await mockDelay();
@@ -104,4 +97,3 @@ export const createInvestmentFund = async (data) => {
   // });
   // return response.data;
 };
->>>>>>> main

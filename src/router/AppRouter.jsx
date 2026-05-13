@@ -39,6 +39,7 @@ import ActuaryManagementPage from "../pages/ActuaryManagementPage.jsx";
 import CreateOrderPage from "../pages/CreateOrderPage.jsx";
 import MyOrdersPage from "../pages/MyOrdersPage.jsx";
 import OrdersReviewPage from "../pages/OrdersReviewPage.jsx";
+import InvestmentFundDetailPage from "../pages/InvestmentFundDetailPage.jsx";
 import OptionContractsPage from "../pages/OptionContractsPage.jsx";
 import FondoviPage from "../pages/FondoviPage.jsx";
 import OtcOffersPage from "../pages/OtcOffersPage.jsx";

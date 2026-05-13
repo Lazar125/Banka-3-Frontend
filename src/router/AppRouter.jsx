@@ -39,6 +39,7 @@ import ActuaryManagementPage from "../pages/ActuaryManagementPage.jsx";
 import CreateOrderPage from "../pages/CreateOrderPage.jsx";
 import MyOrdersPage from "../pages/MyOrdersPage.jsx";
 import OrdersReviewPage from "../pages/OrdersReviewPage.jsx";
+import InvestmentFundDetailPage from "../pages/InvestmentFundDetailPage.jsx";
 import OptionContractsPage from "../pages/OptionContractsPage.jsx";
 import FondoviPage from "../pages/FondoviPage.jsx";
 import OtcOffersPage from "../pages/OtcOffersPage.jsx";
@@ -114,6 +115,7 @@ export default function AppRouter() {
           <Route path="/employee-loans" element={<ProtectedRoute requiredRole="employee"><EmployeeLoansPage /></ProtectedRoute>} />
           <Route path="/employee-loans-list" element={<ProtectedRoute requiredRole="employee"><EmployeeLoansListPage /></ProtectedRoute>} />
           <Route path="/tax" element={<ProtectedRoute requiredRole="employee" requiredPermission="supervisor"><TaxDashboardPage /></ProtectedRoute>} />
+          <Route path="/investment-funds/:id" element={<ProtectedRoute><InvestmentFundDetailPage /></ProtectedRoute>} />
           <Route path="/fondovi" element={<ProtectedRoute requiredRole="client"><FondoviPage /></ProtectedRoute>} />
           <Route path="/investment-funds/create" element={<ProtectedRoute requiredRole="employee" requiredPermission="supervisor"><CreateInvestmentFundPage /></ProtectedRoute>} />
         </Routes>

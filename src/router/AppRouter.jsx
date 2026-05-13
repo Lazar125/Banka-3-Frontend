@@ -40,6 +40,9 @@ import CreateOrderPage from "../pages/CreateOrderPage.jsx";
 import MyOrdersPage from "../pages/MyOrdersPage.jsx";
 import OrdersReviewPage from "../pages/OrdersReviewPage.jsx";
 import FondoviPage from "../pages/FondoviPage.jsx";
+import OtcOffersPage from "../pages/OtcOffersPage.jsx";
+import CreateInvestmentFundPage from "../pages/CreateInvestmentFundPage.jsx";
+import ProfitActuariesPage from "../pages/ProfitActuariesPage.jsx";
 
 export default function AppRouter() {
   return (
@@ -73,6 +76,7 @@ export default function AppRouter() {
           <Route path="/clients/:id" element={<ProtectedRoute requiredRole="employee"><ClientDetailsPage /></ProtectedRoute>} />
           <Route path="/clients/edit/:id" element={<ProtectedRoute requiredRole="employee" requiredPermission="admin"><EditClientPage/></ProtectedRoute>}/>
           <Route path="/actuary-management" element={<ProtectedRoute requiredPermission="supervisor"><ActuaryManagementPage /></ProtectedRoute>} />
+          <Route path="/profit/actuaries" element={<ProtectedRoute requiredPermission="supervisor"><ProfitActuariesPage /></ProtectedRoute>} />
 
           {/* Securities listing is open to clients and employees alike. The
               detail page used to be employee-only, but the spec (p.45) lets
@@ -100,6 +104,7 @@ export default function AppRouter() {
           <Route path="/accounts/:accountNumber" element={<ProtectedRoute requiredRole="client"><AccountDetailsPage /></ProtectedRoute>} />
           <Route path="/portfolio" element={<ProtectedRoute><PortfolioPage /></ProtectedRoute>} />
           <Route path="/exchange" element={<ProtectedRoute requiredRole="client"><ExchangePage /></ProtectedRoute>} />
+          <Route path="/otc/offers" element={<ProtectedRoute><OtcOffersPage /></ProtectedRoute>} />
           <Route path="/berza" element={<ProtectedRoute requiredRole="employee"><BerzaPage /></ProtectedRoute>} />
 
           <Route path="/loans" element={<ProtectedRoute requiredRole="client"><LoansPage /></ProtectedRoute>} />
@@ -108,6 +113,7 @@ export default function AppRouter() {
           <Route path="/employee-loans-list" element={<ProtectedRoute requiredRole="employee"><EmployeeLoansListPage /></ProtectedRoute>} />
           <Route path="/tax" element={<ProtectedRoute requiredRole="employee" requiredPermission="supervisor"><TaxDashboardPage /></ProtectedRoute>} />
           <Route path="/fondovi" element={<ProtectedRoute requiredRole="client"><FondoviPage /></ProtectedRoute>} />
+          <Route path="/investment-funds/create" element={<ProtectedRoute requiredRole="employee" requiredPermission="supervisor"><CreateInvestmentFundPage /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
   );
